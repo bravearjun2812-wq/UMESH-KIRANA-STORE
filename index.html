@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Umesh Kirana Store | Dumka</title>
+  <style>
+    :root{
+      --bg:#061126;
+      --card:#0b1c3a;
+      --blue:#2563eb;
+      --blue2:#60a5fa;
+      --text:#eaf1ff;
+      --muted:#a7b7d8;
+      --danger:#ef4444;
+      --line:rgba(255,255,255,0.10);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background: radial-gradient(1200px 600px at 20% 0%, #0b2a66 0%, var(--bg) 60%);
+      color:var(--text);
+    }
+    a{color:inherit;text-decoration:none}
+    header{
+      position:sticky; top:0; z-index:10;
+      background: rgba(6,17,38,0.88);
+      backdrop-filter: blur(10px);
+      border-bottom:1px solid var(--line);
+    }
+    .container{max-width:1100px;margin:0 auto;padding:16px}
+    .topbar{display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+    .brand{display:flex;gap:10px;align-items:center}
+    .logo{
+      width:54px;height:54px;border-radius:16px;
+      background:linear-gradient(135deg,var(--blue),var(--blue2));
+      display:grid;place-items:center;
+      color:#061126;font-weight:1000;letter-spacing:0.6px;
+      box-shadow:0 16px 30px rgba(37,99,235,.25);
+      font-size:14px;
+    }
+    .brand h1{margin:0;font-size:16px}
+    .small{color:var(--muted);font-size:13px}
+    nav{display:flex;gap:10px;flex-wrap:wrap}
+    .pill{
+      padding:10px 12px;border-radius:999px;
+      border:1px solid var(--line);
+      color:var(--muted);
+    }
+    .pill:hover{color:var(--text);border-color:rgba(255,255,255,0.20)}
+    .card{
+      background:rgba(11,28,58,0.88);
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:16px;
+      box-shadow:0 12px 30px rgba(0,0,0,0.25);
+    }
+    .hero{display:grid;grid-template-columns:1.2fr .8fr;gap:18px;padding:18px 0}
+    @media (max-width:900px){.hero{grid-template-columns:1fr}}
+    .badges{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .badge{
+      border:1px solid var(--line);
+      background:rgba(255,255,255,0.03);
+      padding:6px 10px;border-radius:999px;
+      color:var(--muted);font-size:13px;
+    }
+    .btnRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+    .btn{
+      border:1px solid var(--line);
+      background:#071a3a;
+      color:var(--text);
+      padding:12px 14px;
+      border-radius:12px;
+      font-weight:900;
+      cursor:pointer;
+      display:inline-block;
+      text-align:center;
+    }
+    .btn.primary{
+      background:linear-gradient(135deg,var(--blue),var(--blue2));
+      border:none;color:#061126;
+    }
+    .btn.danger{
+      background:linear-gradient(135deg,var(--danger),#fb7185);
+      border:none;color:#18040a;
+    }
+    .highlight{
+      margin-top:12px;
+      border:1px solid rgba(37,99,235,0.28);
+      background:rgba(37,99,235,0.10);
+      padding:12px;border-radius:14px;
+    }
+    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+    @media (max-width:1000px){.grid{grid-template-columns:repeat(3,1fr)}}
+    @media (max-width:720px){.grid{grid-template-columns:repeat(2,1fr)}}
+    @media (max-width:420px){.grid{grid-template-columns:1fr}}
+    .product{
+      padding:14px;border-radius:16px;
+      background:rgba(255,255,255,0.03);
+      border:1px solid var(--line);
+    }
+    .product h3{margin:0 0 6px;font-size:16px}
+    .row{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .price{font-weight:1000}
+    input, textarea, select{
+      width:100%;
+      padding:12px 12px;
+      border-radius:12px;
+      border:1px solid var(--line);
+      background:rgba(0,0,0,0.20);
+      color:var(--text);
+      outline:none;
+    }
+    label{display:block;margin:10px 0 6px;color:var(--muted);font-size:13px}
+    .cartLine{
+      display:flex;justify-content:space-between;gap:10px;align-items:center;
+      padding:10px 0;border-bottom:1px dashed rgba(255,255,255,0.15);
+    }
+    .qtyBox{
+      display:flex;gap:6px;align-items:center;
+      border:1px solid var(--line);
+      border-radius:12px;padding:6px 8px;
+      background:rgba(0,0,0,0.15);
+    }
+    footer{padding:24px 0;color:var(--muted);font-size:13px}
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="container topbar">
+    <div class="brand">
+      <div class="logo">DEVI</div>
+      <div>
+        <h1>Umesh Kirana Store</h1>
+        <div class="small">Rasikpur, Dumka • 24×7 • Delivery within 10 km</div>
+      </div>
+    </div>
+    <nav>
+      <a class="pill" href="#shop">Shop</a>
+      <a class="pill" href="#cart">Cart</a>
+      <a class="pill" href="#checkout">Checkout</a>
+      <a class="pill" href="#contact">Contact</a>
+    </nav>
+  </div>
+</header>
+
+<main class="container">
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="card">
+      <h2 style="margin:0 0 8px;font-size:30px">Online Grocery • Doorstep Delivery</h2>
+      <p class="small" style="margin:0">
+        Order daily essentials from <b>Umesh Kirana Store, Dumka</b>.
+        We deliver in Dumka and nearby areas within <b>10 km</b>. Open <b>Any time (24×7)</b>.
+      </p>
+
+      <div class="badges">
+        <span class="badge">✅ Online Buy</span>
+        <span class="badge">🚚 Doorstep Delivery</span>
+        <span class="badge">💳 COD / UPI</span>
+        <span class="badge">📞 Emergency Contact</span>
+      </div>
+
+      <div class="highlight">
+        <div class="row" style="flex-wrap:wrap">
+          <div>
+            <div style="font-weight:1000">Emergency / Quick Order</div>
+            <div class="small">
+              Call: <a href="tel:+916205875215"><u>6205875215</u></a> •
+              <a href="tel:+919955498516"><u>9955498516</u></a><br/>
+              WhatsApp: <a href="https://wa.me/916205875215" target="_blank" rel="noopener"><u>6205875215</u></a>
+            </div>
+          </div>
+          <div class="btnRow" style="margin-top:0">
+            <a class="btn danger" href="tel:+916205875215">Emergency Call</a>
+            <a class="btn" href="https://wa.me/916205875215?text=Hello%20Umesh%20Kirana%20Store%2C%20I%20want%20to%20order%20groceries." target="_blank" rel="noopener">WhatsApp Order</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="btnRow">
+        <a class="btn primary" href="#shop">Start Shopping</a>
+        <a class="btn" href="#checkout">Go to Checkout</a>
+      </div>
+
+      <div class="small" style="margin-top:10px">
+        UPI ID: <b>brave2arjun2812@oksbi</b>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin:0 0 10px">Store Details</h3>
+      <div class="small" style="line-height:1.8">
+        <b>Address:</b><br/>
+        Rasikpur, Badhaipara, Near Sharma Ekta Club,<br/>
+        Railway Station Road, Dumka, Jharkhand 814101<br/><br/>
+        <b>Timing:</b> Any time (24×7)<br/>
+        <b>Delivery:</b> Dumka + 10 km around
+      </div>
+    </div>
+  </section>
+
+  <!-- SHOP -->
+  <section id="shop" class="card">
+    <div class="row">
+      <h3 style="margin:0;font-size:20px">Shop Products</h3>
+      <div class="small">Add items to cart and checkout via WhatsApp.</div>
+    </div>
+
+    <div style="display:flex;gap:10px;flex-wrap:wrap;margin:12px 0">
+      <input id="search" placeholder="Search products (rice, oil, biscuit)..." oninput="renderProducts()"/>
+      <select id="category" onchange="renderProducts()">
+        <option value="all">All Categories</option>
+        <option value="Staples">Staples</option>
+        <option value="Spices">Spices</option>
+        <option value="Snacks">Snacks</option>
+        <option value="Household">Household</option>
+      </select>
+    </div>
+
+    <div id="productGrid" class="grid"></div>
+  </section>
+
+  <!-- CART -->
+  <section id="cart" class="card" style="margin-top:14px">
+    <div class="row">
+      <h3 style="margin:0;font-size:20px">Your Cart</h3>
+      <button class="btn" onclick="clearCart()">Clear Cart</button>
+    </div>
+
+    <div id="cartItems" style="margin-top:8px"></div>
+
+    <div class="row" style="margin-top:12px">
+      <div class="small">Subtotal</div>
+      <div class="price" id="subtotal">₹0</div>
+    </div>
+    <div class="row" style="margin-top:6px">
+      <div class="small">Estimated Delivery</div>
+      <div class="price" id="deliveryFee">₹0</div>
+    </div>
+    <div class="row" style="margin-top:6px;border-top:1px solid var(--line);padding-top:10px">
+      <div class="small" style="font-weight:1000">Total</div>
+      <div class="price" id="total">₹0</div>
+    </div>
+
+    <div class="btnRow">
+      <a class="btn primary" href="#checkout">Proceed to Checkout</a>
+    </div>
+  </section>
+
+  <!-- CHECKOUT -->
+  <section id="checkout" class="card" style="margin-top:14px">
+    <h3 style="margin:0 0 6px;font-size:20px">Checkout</h3>
+    <p class="small" style="margin:0">
+      Fill details and place order on WhatsApp. Delivery within <b>10 km</b> of Dumka.
+    </p>
+
+    <div class="grid" style="grid-template-columns:repeat(2,1fr);margin-top:10px">
+      <div>
+        <label>Name</label>
+        <input id="custName" placeholder="Your name"/>
+      </div>
+      <div>
+        <label>Mobile Number</label>
+        <input id="custPhone" placeholder="10-digit number"/>
+      </div>
+    </div>
+
+    <label>Delivery Address (Dumka + 10 km)</label>
+    <textarea id="custAddress" rows="3" placeholder="House/Street, Landmark, Area, PIN"></textarea>
+
+    <div class="grid" style="grid-template-columns:repeat(2,1fr);margin-top:10px">
+      <div>
+        <label>Payment Method</label>
+        <select id="paymentMethod">
+          <option value="COD">Cash on Delivery (COD)</option>
+          <option value="UPI">UPI (Pay to UPI ID)</option>
+        </select>
+      </div>
+      <div>
+        <label>Emergency Contact</label>
+        <a class="btn danger" style="width:100%" href="tel:+916205875215">Call Now (6205875215)</a>
+      </div>
+    </div>
+
+    <div class="highlight">
+      <div style="font-weight:1000;margin-bottom:6px">UPI Payment (Optional)</div>
+      <div class="small">Pay to UPI ID: <b>brave2arjun2812@oksbi</b></div>
+      <div class="btnRow">
+        <a class="btn primary" id="upiPayBtn" href="#" target="_blank" rel="noopener">Pay Now via UPI</a>
+      </div>
+      <div class="small">After paying, share screenshot/UTR on WhatsApp while placing order.</div>
+    </div>
+
+    <div class="btnRow">
+      <button class="btn primary" onclick="placeOrder()">Place Order (WhatsApp)</button>
+      <button class="btn" onclick="copyOrderText()">Copy Order Text</button>
+    </div>
+
+    <div class="small" style="margin-top:10px">
+      WhatsApp Order Number: <b>6205875215</b>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact" class="card" style="margin-top:14px">
+    <h3 style="margin:0 0 10px;font-size:20px">Contact</h3>
+    <div class="grid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="product">
+        <h3>Address</h3>
+        <div class="small" style="line-height:1.8">
+          Rasikpur, Badhaipara,<br/>
+          Near Sharma Ekta Club,<br/>
+          Railway Station Road,<br/>
+          Dumka, Jharkhand 814101
+        </div>
+      </div>
+      <div class="product">
+        <h3>Phone (24×7)</h3>
+        <div class="small" style="line-height:1.9">
+          <a href="tel:+916205875215"><u>6205875215</u></a><br/>
+          <a href="tel:+919955498516"><u>9955498516</u></a>
+        </div>
+      </div>
+      <div class="product">
+        <h3>WhatsApp</h3>
+        <div class="small">
+          <a href="https://wa.me/916205875215" target="_blank" rel="noopener"><u>Chat on WhatsApp</u></a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="container">
+    © <span id="year"></span> Umesh Kirana Store, Dumka • Delivery within 10 km • Open 24×7
+  </footer>
+</main>
+
+<script>
+  // STORE DETAILS (fixed as per your message)
+  const WHATSAPP_NUMBER = "916205875215";
+  const STORE_UPI_ID = "brave2arjun2812@oksbi";
+  const STORE_UPI_NAME = "Umesh Kirana Store";
+
+  // SAMPLE PRODUCTS (you can edit anytime)
+  const products = [
+    {id:1,  name:"Rice (1 kg)",               category:"Staples",   price:65},
+    {id:2,  name:"Wheat Flour / Atta (1 kg)", category:"Staples",   price:55},
+    {id:3,  name:"Toor Dal (1 kg)",           category:"Staples",   price:140},
+    {id:4,  name:"Mustard Oil (1 L)",         category:"Staples",   price:165},
+    {id:5,  name:"Sugar (1 kg)",              category:"Staples",   price:48},
+    {id:6,  name:"Tea (250 g)",               category:"Staples",   price:125},
+    {id:7,  name:"Turmeric Powder (200 g)",   category:"Spices",    price:45},
+    {id:8,  name:"Red Chilli Powder (200 g)", category:"Spices",    price:60},
+    {id:9,  name:"Cumin / Jeera (100 g)",     category:"Spices",    price:55},
+    {id:10, name:"Biscuits (Pack)",           category:"Snacks",    price:20},
+    {id:11, name:"Chips (Pack)",              category:"Snacks",    price:20},
+    {id:12, name:"Detergent (1 kg)",          category:"Household", price:95},
+  ];
+
+  // CART (saved in browser)
+  const cart = JSON.parse(localStorage.getItem("uk_cart") || "{}"); // {id:qty}
+  const money = n => "₹" + Number(n||0).toFixed(0);
+  const saveCart = () => localStorage.setItem("uk_cart", JSON.stringify(cart));
+
+  function addToCart(id){
+    cart[id] = (cart[id]||0) + 1;
+    saveCart(); renderCart();
+  }
+  function setQty(id, qty){
+    if(qty<=0) delete cart[id]; else cart[id]=qty;
+    saveCart(); renderCart();
+  }
+  function clearCart(){
+    for(const k in cart) delete cart[k];
+    saveCart(); renderCart();
+  }
+
+  function getCartLines(){
+    const lines=[];
+    for(const [id,qty] of Object.entries(cart)){
+      const p = products.find(x=>x.id===Number(id));
+      if(!p) continue;
+      lines.push({...p, qty, lineTotal:p.price*qty});
+    }
+    return lines;
+  }
+
+  function calcTotals(){
+    const lines = getCartLines();
+    const subtotal = lines.reduce((s,x)=>s+x.lineTotal,0);
+    // Delivery rule: Free above ₹499 else ₹30 (you can change)
+    const delivery = (subtotal>=499 || subtotal===0) ? 0 : 30;
+    return {subtotal, delivery, total: subtotal+delivery};
+  }
+
+  function renderProducts(){
+    const q = (document.getElementById("search").value||"").toLowerCase().trim();
+    const cat = document.getElementById("category").value;
+
+    const filtered = products.filter(p=>{
+      const mq = !q || p.name.toLowerCase().includes(q);
+      const mc = (cat==="all") || p.category===cat;
+      return mq && mc;
+    });
+
+    document.getElementById("productGrid").innerHTML = filtered.map(p=>`
+      <div class="product">
+        <div class="row">
+          <h3>${p.name}</h3>
+          <div class="small">${p.category}</div>
+        </div>
+        <div class="row" style="margin-top:10px">
+          <div class="price">${money(p.price)}</div>
+          <button class="btn primary" onclick="addToCart(${p.id})">Add</button>
+        </div>
+        <div class="small" style="margin-top:10px">Delivery: Dumka + 10 km</div>
+      </div>
+    `).join("");
+  }
+
+  function makeUpiLink(amount){
+    const pa = encodeURIComponent(STORE_UPI_ID);
+    const pn = encodeURIComponent(STORE_UPI_NAME);
+    const am = encodeURIComponent(String(amount||0));
+    const tn = encodeURIComponent("Grocery Order - Umesh Kirana Store");
+    return `upi://pay?pa=${pa}&pn=${pn}&am=${am}&cu=INR&tn=${tn}`;
+  }
+
+  function renderCart(){
+    const lines = getCartLines();
+    const cartBox = document.getElementById("cartItems");
+
+    if(lines.length===0){
+      cartBox.innerHTML = `<p class="small">Your cart is empty. Go to <a href="#shop"><u>Shop</u></a> to add items.</p>`;
+    }else{
+      cartBox.innerHTML = lines.map(p=>`
+        <div class="cartLine">
+          <div>
+            <div style="font-weight:1000">${p.name}</div>
+            <div class="small">${money(p.price)} each</div>
+          </div>
+          <div class="row" style="gap:10px">
+            <div class="qtyBox">
+              <button class="btn" onclick="setQty(${p.id}, ${p.qty-1})">-</button>
+              <div style="min-width:26px;text-align:center;font-weight:1000">${p.qty}</div>
+              <button class="btn" onclick="setQty(${p.id}, ${p.qty+1})">+</button>
+            </div>
+            <div class="price">${money(p.lineTotal)}</div>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    const {subtotal, delivery, total} = calcTotals();
+    document.getElementById("subtotal").innerText = money(subtotal);
+    document.getElementById("deliveryFee").innerText = money(delivery);
+    document.getElementById("total").innerText = money(total);
+    document.getElementById("upiPayBtn").href = makeUpiLink(total);
+  }
+
+  function buildOrderText(){
+    const name = document.getElementById("custName").value.trim();
+    const phone = document.getElementById("custPhone").value.trim();
+    const address = document.getElementById("custAddress").value.trim();
+    const payment = document.getElementById("paymentMethod").value;
+
+    const lines = getCartLines();
+    const {subtotal, delivery, total} = calcTotals();
+
+    let text = `*New Order - Umesh Kirana Store (Dumka)*%0A`;
+    text += `Name: ${encodeURIComponent(name||"-")}%0A`;
+    text += `Phone: ${encodeURIComponent(phone||"-")}%0A`;
+    text += `Address: ${encodeURIComponent(address||"-")}%0A`;
+    text += `Payment: ${encodeURIComponent(payment)}%0A`;
+    text += `Delivery Area: Dumka + 10 km%0A%0A`;
+    text += `*Items*%0A`;
+    lines.forEach(p=>{
+      text += `- ${encodeURIComponent(p.name)} x${p.qty} = ${encodeURIComponent(money(p.lineTotal))}%0A`;
+    });
+    text += `%0ASubtotal: ${encodeURIComponent(money(subtotal))}%0A`;
+    text += `Delivery: ${encodeURIComponent(money(delivery))}%0A`;
+    text += `*Total: ${encodeURIComponent(money(total))}*%0A`;
+    text += `%0AUPI: ${encodeURIComponent(STORE_UPI_ID)}%0A(If paid via UPI, share screenshot/UTR.)`;
+    return text;
+  }
+
+  function placeOrder(){
+    const lines = getCartLines();
+    if(lines.length===0){ alert("Your cart is empty. Add items first."); location.hash="#shop"; return; }
+
+    const name = document.getElementById("custName").value.trim();
+    const phone = document.getElementById("custPhone").value.trim();
+    const address = document.getElementById("custAddress").value.trim();
+    if(!name || !phone || !address){ alert("Please fill Name, Phone, and Address."); return; }
+
+    const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${buildOrderText()}`;
+    window.open(waUrl, "_blank");
+  }
+
+  function copyOrderText(){
+    const lines = getCartLines();
+    if(lines.length===0){ alert("Cart is empty."); return; }
+
+    const {subtotal, delivery, total} = calcTotals();
+    const name = document.getElementById("custName").value.trim() || "-";
+    const phone = document.getElementById("custPhone").value.trim() || "-";
+    const address = document.getElementById("custAddress").value.trim() || "-";
+    const payment = document.getElementById("paymentMethod").value;
+
+    let text = `New Order - Umesh Kirana Store (Dumka)\n`;
+    text += `Name: ${name}\nPhone: ${phone}\nAddress: ${address}\nPayment: ${payment}\nDelivery Area: Dumka + 10 km\n\nItems:\n`;
+    getCartLines().forEach(p=> text += `- ${p.name} x${p.qty} = ${money(p.lineTotal)}\n`);
+    text += `\nSubtotal: ${money(subtotal)}\nDelivery: ${money(delivery)}\nTotal: ${money(total)}\nUPI: ${STORE_UPI_ID}\n(If paid via UPI, share screenshot/UTR.)`;
+
+    navigator.clipboard.writeText(text).then(()=>alert("Order text copied!"));
+  }
+
+  // INIT
+  document.getElementById("year").innerText = new Date().getFullYear();
+  renderProducts();
+  renderCart();
+</script>
+</body>
+</html>
