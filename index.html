@@ -1,1027 +1,1781 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>Umesh Kirana Store | Dumka</title>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>UK Mart — Grocery Marketplace</title>
+
+  <!-- jsPDF for Invoice PDF -->
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+  <!-- Leaflet map (OpenStreetMap) -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+  <script src="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js"></script>
 
   <style>
     :root{
-      --bg:#ffffff;
-      --surface:#ffffff;
-      --text:#0f172a;
-      --muted:#64748b;
-      --line:#e5e7eb;
-      --blue:#2563eb;
-      --blue2:#1d4ed8;
-      --soft:#f8fafc;
-      --shadow:0 10px 25px rgba(15,23,42,0.08);
-      --shadow2:0 6px 18px rgba(15,23,42,0.06);
-      --danger:#ef4444;
+      --bg:#f5f7fb; --card:#fff; --text:#0f172a; --muted:#64748b;
+      --brand:#2563eb; --brand2:#22c55e; --line:#e5e7eb;
+      --good:#16a34a; --warn:#f59e0b; --bad:#dc2626;
+      --shadow:0 14px 40px rgba(2,6,23,.10); --radius:18px;
     }
     *{box-sizing:border-box}
-    body{
-      margin:0;
-      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
-      background:var(--bg);
-      color:var(--text);
-    }
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text)}
     a{color:inherit;text-decoration:none}
-    .container{max-width:1180px;margin:0 auto;padding:0 16px}
-    .small{color:var(--muted);font-size:13px}
+    button{font-family:inherit}
+    .container{max-width:1200px;margin:0 auto;padding:14px}
 
-    /* TOP BAR */
-    .topbar{
-      background:var(--blue);
-      color:#fff;
-      font-size:13px;
-    }
-    .topbar .wrap{
-      display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;
-      padding:10px 0;
-    }
-    .topbar a{color:#fff;text-decoration:underline}
+    /* Topbar */
+    .topbar{position:sticky;top:0;z-index:20;background:linear-gradient(90deg,var(--brand),#38bdf8);color:#fff;border-bottom:1px solid rgba(255,255,255,.18)}
+    .topbarInner{display:flex;gap:12px;align-items:center;justify-content:space-between;padding:12px 14px;max-width:1200px;margin:0 auto}
+    .brand{display:flex;align-items:center;gap:10px;min-width:220px}
+    .logo{width:42px;height:42px;border-radius:14px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.25);display:grid;place-items:center;font-weight:900;letter-spacing:.5px}
+    .brandText .name{font-weight:1000;font-size:16px;line-height:1}
+    .brandText .tag{font-size:12px;opacity:.92}
 
-    /* HEADER */
-    header{
-      position:sticky;top:0;z-index:50;
-      background:rgba(255,255,255,0.95);
-      backdrop-filter:blur(10px);
-      border-bottom:1px solid var(--line);
-    }
-    .headerWrap{
-      display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap;
-      padding:14px 0;
-    }
-    .brand{display:flex;gap:12px;align-items:center}
-    .logo{
-      width:54px;height:54px;border-radius:16px;
-      background:linear-gradient(135deg,var(--blue),#60a5fa);
-      display:grid;place-items:center;color:#fff;
-      font-weight:900;letter-spacing:0.6px;
-      box-shadow:0 10px 20px rgba(37,99,235,0.25);
-      font-size:14px;
-    }
-    .brandTitle{margin:0;font-size:18px;font-weight:900}
-    .brandSub{margin:2px 0 0;color:var(--muted);font-size:13px}
+    .searchWrap{flex:1;display:flex;gap:10px;align-items:center;max-width:560px}
+    .search{flex:1;display:flex;background:rgba(255,255,255,.95);border-radius:14px;overflow:hidden;border:1px solid rgba(255,255,255,.25)}
+    .search input{flex:1;border:none;outline:none;padding:10px 12px;font-size:14px;background:transparent}
+    .search button{border:none;cursor:pointer;padding:10px 12px;font-weight:1000;background:#0f172a;color:#fff}
+    .actions{display:flex;gap:10px;align-items:center}
+    .iconBtn{border:none;cursor:pointer;background:rgba(255,255,255,.16);color:#fff;border:1px solid rgba(255,255,255,.22);padding:10px 12px;border-radius:14px;font-size:18px}
+    .pillMini{display:flex;gap:8px;align-items:center;background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.22);padding:8px 10px;border-radius:999px;font-size:12px;white-space:nowrap}
+    .pillMini b{font-size:13px}
 
-    .searchBox{
-      flex:1;min-width:220px;max-width:520px;
-      display:flex;gap:8px;align-items:center;
-      background:var(--soft);border:1px solid var(--line);
-      border-radius:14px;padding:10px 12px;
-    }
-    .searchBox input{
-      border:none;outline:none;background:transparent;width:100%;font-size:14px;
-    }
+    /* Drawer */
+    .drawerBackdrop{position:fixed;inset:0;background:rgba(2,6,23,.45);display:none;z-index:40}
+    .drawer{position:fixed;top:0;right:0;height:100%;width:min(410px,92vw);background:#fff;box-shadow:-18px 0 50px rgba(0,0,0,.22);transform:translateX(100%);transition:transform .25s ease;z-index:50;display:flex;flex-direction:column}
+    .drawer.open{transform:translateX(0)}
+    .drawerBackdrop.show{display:block}
+    .drawerHead{padding:14px;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;align-items:center}
+    .drawerHead .title{font-weight:1100}
+    .drawerHead button{border:none;background:#f1f5f9;cursor:pointer;padding:10px 12px;border-radius:12px;font-weight:1100}
+    .drawerBody{padding:12px;overflow:auto}
+    .drawerBody .navBtn{width:100%;display:flex;justify-content:space-between;align-items:center;padding:12px;border-radius:14px;border:1px solid var(--line);background:#fff;cursor:pointer;font-weight:1000;margin-bottom:10px}
+    .drawerBody .navBtn:hover{border-color:#cbd5e1}
+    .drawerBody .sub{margin:12px 0 6px;color:var(--muted);font-weight:1100;font-size:12px;letter-spacing:.4px;text-transform:uppercase}
 
-    .btnRow{display:flex;gap:10px;flex-wrap:wrap}
-    .btn{
-      border:1px solid var(--line);
-      background:#fff;
-      padding:10px 12px;border-radius:12px;
-      font-weight:900;
-      cursor:pointer;
-      display:inline-block;
-      text-align:center;
-      user-select:none;
-    }
-    .btn.primary{
-      background:linear-gradient(135deg,var(--blue),var(--blue2));
-      border:none;color:#fff;
-    }
-    .btn.soft{background:var(--soft)}
-    .btn.danger{
-      background:linear-gradient(135deg,var(--danger),#fb7185);
-      border:none;color:#fff;
-    }
-    .btn:active{transform:translateY(1px)}
+    /* Hero */
+    .banner{background:linear-gradient(90deg,#fff,#eef2ff);border:1px solid var(--line);border-radius:var(--radius);padding:14px;box-shadow:var(--shadow);display:flex;gap:14px;justify-content:space-between;align-items:center;flex-wrap:wrap}
+    .banner h1{margin:0;font-size:22px}
+    .banner p{margin:6px 0 0;color:var(--muted)}
+    .cta{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .btn{border:none;cursor:pointer;padding:10px 12px;border-radius:14px;font-weight:1100;background:#fff;border:1px solid var(--line)}
+    .btn.primary{background:#0f172a;color:#fff;border-color:#0f172a}
+    .btn.green{background:var(--brand2);color:#062e12;border-color:transparent}
+    .btn:disabled{opacity:.55;cursor:not-allowed}
 
-    /* CATEGORY NAV */
-    .catNav{
-      background:#fff;
-      border-top:1px solid var(--line);
-      border-bottom:1px solid var(--line);
+    /* Category quick bar */
+    .catBar{
+      margin-top:12px;background:#fff;border:1px solid var(--line);border-radius:18px;
+      box-shadow:var(--shadow);padding:10px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;
     }
-    .catNav .row{
-      display:flex;gap:10px;flex-wrap:wrap;
-      padding:10px 0;
+    .catBar .chip{
+      padding:10px 12px;border-radius:999px;border:1px solid var(--line);
+      background:#fff;cursor:pointer;font-weight:1100;font-size:13px;
     }
-    .chip{
-      padding:8px 10px;border-radius:999px;
-      border:1px solid var(--line);
-      background:#fff;color:var(--text);
-      font-weight:800;font-size:13px;
-      white-space:nowrap;
-    }
-    .chip:hover{border-color:#cbd5e1}
-
-    /* SECTIONS */
-    main{padding:16px 0 24px}
-    .card{
-      background:var(--surface);
-      border:1px solid var(--line);
-      border-radius:18px;
-      box-shadow:var(--shadow);
-      padding:16px;
+    .catBar .chip.active{border-color:#93c5fd; box-shadow:0 0 0 4px rgba(59,130,246,.12)}
+    .catBar .right{margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .select{
+      padding:10px 12px;border-radius:14px;border:1px solid var(--line);
+      background:#fff;font-weight:1000;
     }
 
-    /* HERO */
-    .hero{
-      display:grid;grid-template-columns:1.4fr 0.6fr;gap:16px;
-      padding:18px 0;
-    }
-    @media(max-width:900px){.hero{grid-template-columns:1fr}}
-    .heroBanner{
-      display:grid;grid-template-columns:1fr 1fr;gap:12px;align-items:center;
-      background:linear-gradient(135deg,#eff6ff,#ffffff);
-      border:1px solid rgba(37,99,235,0.18);
-    }
-    @media(max-width:720px){.heroBanner{grid-template-columns:1fr}}
-    .heroTitle{margin:0;font-size:30px}
-    .heroText{color:var(--muted);margin:10px 0 0;line-height:1.6}
-    .heroImg{
-      width:100%;height:240px;border-radius:14px;
-      background:#e2e8f0;
-      background-size:cover;background-position:center;
-      border:1px solid var(--line);
-    }
+    /* Layout */
+    .grid{display:grid;grid-template-columns:1.65fr .55fr;gap:14px;align-items:start;margin-top:14px}
+    .section{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+    .sectionHead{padding:12px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;border-bottom:1px solid var(--line);background:linear-gradient(90deg,#fff,#f8fafc)}
+    .sectionHead h2{margin:0;font-size:16px}
+    .muted{color:var(--muted)}
+    .tiny{font-size:12px;color:var(--muted);font-weight:1000}
+    .pill{display:inline-block;padding:8px 10px;border-radius:999px;font-weight:1100;font-size:12px;border:1px solid var(--line);background:#fff}
+    .pill.good{background:#dcfce7;color:#166534;border-color:#bbf7d0}
+    .pill.warn{background:#fef3c7;color:#92400e;border-color:#fde68a}
+    .pill.bad{background:#fee2e2;color:#991b1b;border-color:#fecaca}
 
-    /* side category cards */
-    .sideGrid{display:grid;gap:12px}
-    .sideCat{
-      display:grid;grid-template-columns:90px 1fr;gap:12px;align-items:center;
-      padding:12px;border-radius:16px;
-      border:1px solid var(--line);background:#fff;
-      box-shadow:var(--shadow2);
-    }
-    .thumb{
-      width:90px;height:70px;border-radius:14px;background:#e2e8f0;
-      background-size:cover;background-position:center;
-      border:1px solid var(--line);
-    }
-    .sideCat h3{margin:0;font-size:15px}
-    .sideCat p{margin:6px 0 0;color:var(--muted);font-size:13px}
+    /* Product horizontal slider */
+    .rowWrap{padding:12px 14px}
+    .hRow{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch}
+    .hRow::-webkit-scrollbar{height:10px}
+    .hRow::-webkit-scrollbar-thumb{background:#dbeafe;border-radius:999px}
+    .hRow::-webkit-scrollbar-track{background:#f1f5f9;border-radius:999px}
 
-    .strip{
-      display:grid;grid-template-columns:repeat(3,1fr);gap:12px;
-      margin-top:12px;
-    }
-    @media(max-width:900px){.strip{grid-template-columns:1fr}}
-    .stripItem{
-      border:1px solid var(--line);
-      background:var(--soft);
-      border-radius:16px;
-      padding:12px;
-    }
-    .stripItem b{display:block;margin-bottom:4px}
+    .pCard{min-width:220px;max-width:220px;background:#fff;border:1px solid var(--line);border-radius:16px;overflow:hidden;scroll-snap-align:start;transition:transform .12s ease,box-shadow .12s ease}
+    .pCard:hover{transform:translateY(-2px);box-shadow:0 18px 50px rgba(2,6,23,.10)}
+    .pImg{width:100%;height:120px;object-fit:cover;background:#e5e7eb}
+    .pad{padding:10px}
+    .row{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+    .name{font-weight:1100}
+    .cat{font-size:12px;color:var(--muted);margin-top:2px}
+    .price{font-weight:1100;font-size:16px}
+    .tag{display:inline-block;padding:6px 10px;border-radius:999px;font-weight:1100;font-size:12px;white-space:nowrap}
+    .tag.good{background:#dcfce7;color:#166534}
+    .tag.warn{background:#fef3c7;color:#92400e}
+    .tag.bad{background:#fee2e2;color:#991b1b}
+    .qty{display:flex;align-items:center;gap:8px}
+    .qty button{width:34px;height:34px;border-radius:12px;border:1px solid var(--line);background:#fff;cursor:pointer;font-weight:1100;font-size:16px}
+    .qty .num{min-width:18px;text-align:center;font-weight:1100}
 
-    /* FORMS */
-    input, textarea, select{
-      width:100%;
-      padding:12px;
-      border-radius:12px;
-      border:1px solid var(--line);
-      background:#fff;
-      color:var(--text);
-      outline:none;
-    }
-    input:focus, textarea:focus, select:focus{
-      border-color:rgba(37,99,235,0.55);
-      box-shadow:0 0 0 4px rgba(37,99,235,0.12);
-    }
-    label{display:block;margin:10px 0 6px;color:var(--muted);font-size:13px}
+    /* Basket */
+    .basket{position:sticky;top:78px}
+    .basketBody{padding:12px 14px}
+    .basketItem{display:flex;gap:10px;align-items:center;border:1px solid var(--line);border-radius:14px;padding:10px;margin-bottom:10px;background:#fff}
+    .basketItem img{width:56px;height:56px;border-radius:12px;object-fit:cover;background:#e5e7eb}
+    .basketItem .info{flex:1}
+    .basketItem .info .t{font-weight:1100;font-size:13px}
+    .basketItem .info .s{color:var(--muted);font-size:12px}
+    .basketTotals{border-top:1px dashed var(--line);padding-top:10px;margin-top:10px}
+    .kv{display:flex;justify-content:space-between;margin:6px 0;font-weight:1000}
+    .kv .k{color:var(--muted);font-weight:1100}
+    .payNote{color:var(--muted);font-size:12px;margin-top:10px}
 
-    /* GRIDS */
-    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-    @media (max-width:1000px){.grid{grid-template-columns:repeat(3,1fr)}}
-    @media (max-width:720px){.grid{grid-template-columns:repeat(2,1fr)}}
-    @media (max-width:420px){.grid{grid-template-columns:1fr}}
+    /* Modals */
+    .modalBackdrop{position:fixed;inset:0;background:rgba(2,6,23,.55);display:none;z-index:60;padding:16px}
+    .modal{max-width:1040px;margin:0 auto;background:#fff;border-radius:20px;box-shadow:0 30px 90px rgba(0,0,0,.35);overflow:hidden}
+    .modalHead{padding:12px 14px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);background:linear-gradient(90deg,#fff,#f8fafc)}
+    .modalHead .title{font-weight:1200}
+    .modalHead button{border:none;cursor:pointer;background:#f1f5f9;padding:10px 12px;border-radius:12px;font-weight:1200}
+    .modalBody{padding:14px}
+    .twoCol{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    .field label{display:block;font-weight:1100;font-size:12px;color:var(--muted);margin:4px 0}
+    .field input,.field select,.field textarea{width:100%;padding:10px 12px;border-radius:14px;border:1px solid var(--line);outline:none;background:#fff}
+    .note{margin-top:10px;color:var(--muted);font-weight:1000;font-size:13px}
+    .hr{height:1px;background:var(--line);margin:12px 0}
+    .tableWrap{overflow:auto;border:1px solid var(--line);border-radius:16px}
+    table{width:100%;border-collapse:collapse;background:#fff}
+    th,td{padding:10px;border-bottom:1px solid var(--line);text-align:left;font-size:13px}
+    th{background:#f8fafc;font-weight:1200}
 
-    .product{
-      padding:12px;border-radius:16px;
-      background:#fff;
-      border:1px solid var(--line);
-      box-shadow:var(--shadow2);
-      display:flex;flex-direction:column;gap:10px;
-    }
-    .prodImg{
-      width:100%;height:140px;border-radius:14px;
-      background:#eef2ff;
-      border:1px solid var(--line);
-      display:grid;place-items:center;
-      font-size:42px;
-      overflow:hidden;
-    }
-    .prodImg img{width:100%;height:100%;object-fit:cover;display:block}
-    .row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
-    .price{font-weight:1000}
+    /* See-all grid */
+    .gridCards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-top:10px}
+    .gridCards .pCard{min-width:auto;max-width:none}
 
-    /* CART */
-    .cartLine{
-      display:flex;justify-content:space-between;gap:10px;align-items:center;
-      padding:10px 0;border-bottom:1px dashed #e5e7eb;
-    }
-    .qtyBox{
-      display:flex;gap:6px;align-items:center;
-      border:1px solid var(--line);
-      border-radius:12px;padding:6px 8px;
-      background:var(--soft);
-    }
+    /* Maps */
+    .mapBox{height:360px;border-radius:16px;border:1px solid var(--line);overflow:hidden;background:#eef2ff}
+    .mapSmall{height:260px}
 
-    /* FOOTER */
-    footer{
-      margin-top:18px;
-      border-top:1px solid var(--line);
-      background:#fff;
-      padding:18px 0;
-      color:var(--muted);
-      font-size:13px;
-    }
-    .footGrid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:16px}
-    @media(max-width:900px){.footGrid{grid-template-columns:1fr}}
+    /* Toast */
+    .toastWrap{position:fixed;right:14px;bottom:14px;z-index:90;display:flex;flex-direction:column;gap:10px}
+    .toast{background:#0f172a;color:#fff;border:1px solid rgba(255,255,255,.1);padding:12px 12px;border-radius:16px;box-shadow:0 20px 60px rgba(2,6,23,.35);max-width:360px}
+    .toast .t{font-weight:1200}
+    .toast .s{opacity:.9;margin-top:4px;font-weight:900;font-size:13px}
 
-    /* ADMIN UI */
-    .adminGrid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
-    @media(max-width:900px){.adminGrid{grid-template-columns:1fr}}
-    .adminItem{
-      border:1px solid var(--line);
-      border-radius:14px;
-      padding:12px;
-      background:#fff;
-      box-shadow:var(--shadow2);
+    @media (max-width:980px){
+      .grid{grid-template-columns:1fr}
+      .basket{position:relative;top:0}
+      .gridCards{grid-template-columns:repeat(2,minmax(0,1fr))}
     }
-    .adminThumb{
-      width:100%;
-      height:120px;
-      border-radius:12px;
-      border:1px solid var(--line);
-      background:#eef2ff;
-      display:grid;place-items:center;
-      overflow:hidden;
+    @media (max-width:520px){
+      .searchWrap{display:none}
+      .gridCards{grid-template-columns:1fr}
+      .pCard{min-width:210px;max-width:210px}
+      .mapBox{height:300px}
     }
-    .adminThumb img{width:100%;height:100%;object-fit:cover;display:block}
-    .hidden{display:none !important;}
   </style>
 </head>
 
 <body>
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbarInner">
+      <a class="brand" href="#" onclick="return false;">
+        <div class="logo">UK</div>
+        <div class="brandText">
+          <div class="name">UK Mart</div>
+          <div class="tag">Grocery Marketplace • Smart Pricing</div>
+        </div>
+      </a>
 
-<!-- TOP BAR -->
-<div class="topbar">
-  <div class="container wrap">
-    <div>
-      Delivery: <b>Dumka + 10 km</b> • Timing: <b>24×7</b> • UPI: <b>brave2arjun2812@oksbi</b>
-    </div>
-    <div>
-      Call: <a href="tel:+916205875215">6205875215</a> •
-      <a href="tel:+919955498516">9955498516</a> •
-      WhatsApp: <a href="https://wa.me/916205875215" target="_blank" rel="noopener">6205875215</a>
-    </div>
-  </div>
-</div>
+      <div class="searchWrap">
+        <div class="search">
+          <input id="q" placeholder="Search rice, oil, atta, soap..." />
+          <button onclick="App.search()">Search</button>
+        </div>
+      </div>
 
-<header>
-  <div class="container headerWrap">
-    <div class="brand">
-      <div class="logo">DEVI</div>
-      <div>
-        <p class="brandTitle">Umesh Kirana Store</p>
-        <p class="brandSub">Rasikpur, Dumka • 24×7 • Delivery within 10 km</p>
+      <div class="actions">
+        <div class="pillMini"><span>Market</span><b id="marketIndex">—</b></div>
+        <button class="iconBtn" onclick="UI.openDrawer()">⋮</button>
       </div>
     </div>
-
-    <div class="searchBox">
-      🔎 <input id="searchTop" placeholder="Search products (rice, oil, biscuit)..." />
-    </div>
-
-    <div class="btnRow">
-      <a class="btn soft" href="#cart">Cart</a>
-      <a class="btn primary" href="#checkout">Checkout</a>
-    </div>
   </div>
 
-  <!-- CATEGORY NAV -->
-  <div class="catNav">
-    <div class="container row">
-      <a class="chip" href="#shop" onclick="setCategory('all')">All</a>
-      <a class="chip" href="#shop" onclick="setCategory('Staples')">Staples</a>
-      <a class="chip" href="#shop" onclick="setCategory('Spices')">Spices</a>
-      <a class="chip" href="#shop" onclick="setCategory('Snacks')">Snacks</a>
-      <a class="chip" href="#shop" onclick="setCategory('Household')">Household</a>
-      <a class="chip" href="#contact">Contact</a>
-      <a class="chip" href="#admin">Admin</a>
+  <!-- DRAWER -->
+  <div id="drawerBackdrop" class="drawerBackdrop" onclick="UI.closeDrawer()"></div>
+  <aside id="drawer" class="drawer" aria-hidden="true">
+    <div class="drawerHead">
+      <div class="title">Menu</div>
+      <button onclick="UI.closeDrawer()">Close</button>
     </div>
-  </div>
-</header>
+    <div class="drawerBody">
+      <button class="navBtn" onclick="UI.scrollTo('top');UI.closeDrawer()"><span>Home</span><span>→</span></button>
+      <button class="navBtn" onclick="UI.scrollTo('products');UI.closeDrawer()"><span>Products</span><span>→</span></button>
+      <button class="navBtn" onclick="UI.scrollTo('basket');UI.closeDrawer()"><span>Basket</span><span>→</span></button>
 
-<main class="container">
+      <div class="sub">Account</div>
+      <button class="navBtn" onclick="Modal.open('account');UI.closeDrawer()"><span>Login / Register</span><span>→</span></button>
 
-  <!-- HERO -->
-  <section class="hero">
-    <div class="card heroBanner">
+      <div class="sub">My Orders</div>
+      <button class="navBtn" onclick="Modal.open('track');UI.closeDrawer()"><span>Track Delivery (Map)</span><span>→</span></button>
+
+      <div class="sub">Vendor</div>
+      <button class="navBtn" onclick="Modal.open('seller');UI.closeDrawer()"><span>Vendor Panel</span><span>→</span></button>
+
+      <div class="sub">Delivery</div>
+      <button class="navBtn" onclick="Modal.open('driver');UI.closeDrawer()"><span>Delivery Partner Panel</span><span>→</span></button>
+
+      <div class="sub">Admin</div>
+      <button class="navBtn" onclick="Modal.open('admin');UI.closeDrawer()"><span>Admin Dashboard</span><span>→</span></button>
+
+      <div class="sub">Help & Support</div>
+      <button class="navBtn" onclick="Modal.open('help');UI.closeDrawer()"><span>Help Center</span><span>→</span></button>
+
+      <div class="sub">Settings</div>
+      <button class="navBtn" onclick="Modal.open('settings');UI.closeDrawer()"><span>Language & Area</span><span>→</span></button>
+    </div>
+  </aside>
+
+  <main class="container" id="top">
+    <!-- HERO -->
+    <section class="banner">
       <div>
-        <h1 class="heroTitle">Online Grocery • Doorstep Delivery</h1>
-        <p class="heroText">
-          Order daily essentials from <b>Umesh Kirana Store, Dumka</b>.
-          We deliver in Dumka and nearby areas within <b>10 km</b>.
-          Payment: <b>COD / UPI</b>.
+        <h1>UK Mart — Quick grocery shopping</h1>
+        <p>Horizontal product sliders + Basket + Invoice PDF + Delivery tracking (map demo) + Driver payout (demo).</p>
+        <p class="tiny" style="margin-top:10px">
+          Area: <b id="areaLabel">Not set</b> • Last order: <b id="lastOrderLabel">None</b>
         </p>
-
-        <div class="btnRow" style="margin-top:12px">
-          <a class="btn primary" href="#shop">Shop Now</a>
-          <a class="btn" href="https://wa.me/916205875215?text=Hello%20Umesh%20Kirana%20Store%2C%20I%20want%20to%20order%20groceries."
-             target="_blank" rel="noopener">WhatsApp Order</a>
-          <a class="btn danger" href="tel:+916205875215">Emergency Call</a>
-        </div>
-
-        <div class="small" style="margin-top:10px">
-          UPI ID: <b>brave2arjun2812@oksbi</b>
-        </div>
       </div>
-
-      <div class="heroImg" style="background-image:url('https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=1100&q=60');"></div>
-    </div>
-
-    <div class="card">
-      <h3 style="margin:0 0 10px">Quick Categories</h3>
-
-      <div class="sideGrid">
-        <div class="sideCat" onclick="setCategory('Staples'); location.hash='#shop';" style="cursor:pointer">
-          <div class="thumb" style="background-image:url('https://images.unsplash.com/photo-1586201375761-83865001e17b?auto=format&fit=crop&w=600&q=60');"></div>
-          <div>
-            <h3>Staples</h3>
-            <p>Rice • Atta • Sugar • Tea</p>
-          </div>
-        </div>
-
-        <div class="sideCat" onclick="setCategory('Spices'); location.hash='#shop';" style="cursor:pointer">
-          <div class="thumb" style="background-image:url('https://images.unsplash.com/photo-1615485737651-2b9c9b4dfb8c?auto=format&fit=crop&w=600&q=60');"></div>
-          <div>
-            <h3>Spices</h3>
-            <p>Haldi • Mirch • Jeera</p>
-          </div>
-        </div>
-
-        <div class="sideCat" onclick="setCategory('Snacks'); location.hash='#shop';" style="cursor:pointer">
-          <div class="thumb" style="background-image:url('https://images.unsplash.com/photo-1514995669114-6081e934b693?auto=format&fit=crop&w=600&q=60');"></div>
-          <div>
-            <h3>Snacks</h3>
-            <p>Biscuits • Chips • Cold Drinks</p>
-          </div>
-        </div>
+      <div class="cta">
+        <button class="btn primary" onclick="UI.scrollTo('products')">Browse Products</button>
+        <button class="btn" onclick="Modal.open('track')">Track Order</button>
+        <button class="btn" onclick="Modal.open('driver')">Delivery Panel</button>
       </div>
+    </section>
 
-      <div class="strip">
-        <div class="stripItem">
-          <b>Delivery</b>
-          <div class="small">Free above ₹499</div>
-        </div>
-        <div class="stripItem">
-          <b>Call</b>
-          <div class="small">6205875215</div>
-        </div>
-        <div class="stripItem">
-          <b>UPI</b>
-          <div class="small">brave2arjun2812@oksbi</div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- SHOP -->
-  <section id="shop" class="card">
-    <div class="row">
-      <h3 style="margin:0;font-size:20px">Featured Products</h3>
-      <div class="small">Add items to cart and checkout via WhatsApp.</div>
-    </div>
-
-    <div class="row" style="gap:10px;margin:12px 0">
-      <input id="search" placeholder="Search products (rice, oil, biscuit)..." oninput="renderProducts()"/>
-      <select id="category" onchange="renderProducts()" style="max-width:260px">
-        <option value="all">All Categories</option>
-        <option value="Staples">Staples</option>
-        <option value="Spices">Spices</option>
-        <option value="Snacks">Snacks</option>
-        <option value="Household">Household</option>
-      </select>
-    </div>
-
-    <div id="productGrid" class="grid"></div>
-  </section>
-
-  <!-- CART -->
-  <section id="cart" class="card" style="margin-top:14px">
-    <div class="row">
-      <h3 style="margin:0;font-size:20px">Your Cart</h3>
-      <button class="btn" onclick="clearCart()">Clear Cart</button>
-    </div>
-
-    <div id="cartItems" style="margin-top:8px"></div>
-
-    <div class="row" style="margin-top:12px">
-      <div class="small">Subtotal</div>
-      <div class="price" id="subtotal">₹0</div>
-    </div>
-    <div class="row" style="margin-top:6px">
-      <div class="small">Estimated Delivery</div>
-      <div class="price" id="deliveryFee">₹0</div>
-    </div>
-    <div class="row" style="margin-top:6px;border-top:1px solid var(--line);padding-top:10px">
-      <div class="small" style="font-weight:1000">Total</div>
-      <div class="price" id="total">₹0</div>
-    </div>
-
-    <div class="btnRow" style="margin-top:12px">
-      <a class="btn primary" href="#checkout">Proceed to Checkout</a>
-    </div>
-  </section>
-
-  <!-- CHECKOUT -->
-  <section id="checkout" class="card" style="margin-top:14px">
-    <h3 style="margin:0 0 6px;font-size:20px">Checkout</h3>
-    <p class="small" style="margin:0">
-      Fill details and place order on WhatsApp. Delivery within <b>10 km</b> of Dumka.
-    </p>
-
-    <div class="grid" style="grid-template-columns:repeat(2,1fr);margin-top:10px">
-      <div>
-        <label>Name</label>
-        <input id="custName" placeholder="Your name"/>
-      </div>
-      <div>
-        <label>Mobile Number</label>
-        <input id="custPhone" placeholder="10-digit number"/>
-      </div>
-    </div>
-
-    <label>Delivery Address (Dumka + 10 km)</label>
-    <textarea id="custAddress" rows="3" placeholder="House/Street, Landmark, Area, PIN"></textarea>
-
-    <div class="grid" style="grid-template-columns:repeat(2,1fr);margin-top:10px">
-      <div>
-        <label>Payment Method</label>
-        <select id="paymentMethod">
-          <option value="COD">Cash on Delivery (COD)</option>
-          <option value="UPI">UPI (Pay to UPI ID)</option>
+    <!-- QUICK CATEGORY BAR -->
+    <section class="catBar" id="products">
+      <div id="catChips"></div>
+      <div class="right">
+        <select class="select" id="stockFilter" onchange="App.render()" title="Stock filter">
+          <option value="all">All</option>
+          <option value="available">Available</option>
+          <option value="out">Out of stock</option>
+          <option value="unavailable">Unavailable</option>
         </select>
+        <button class="btn" onclick="App.reset()">Reset</button>
       </div>
-      <div>
-        <label>Emergency Contact</label>
-        <a class="btn danger" style="width:100%" href="tel:+916205875215">Call Now (6205875215)</a>
-      </div>
+    </section>
+
+    <div class="grid">
+      <!-- LEFT: PRODUCT SECTIONS -->
+      <div id="sections"></div>
+
+      <!-- RIGHT: BASKET -->
+      <aside class="section basket" id="basket">
+        <div class="sectionHead">
+          <h2>Basket</h2>
+          <button class="btn" onclick="Cart.clear()">Clear</button>
+        </div>
+        <div class="basketBody">
+          <div id="basketItems"></div>
+
+          <div class="basketTotals">
+            <div class="kv"><div class="k">Subtotal</div><div id="subTotal">₹0</div></div>
+            <div class="kv"><div class="k">Tax/Handling</div><div id="taxTotal">₹0</div></div>
+            <div class="kv"><div class="k">Grand total</div><div id="grandTotal">₹0</div></div>
+
+            <div class="payNote">
+              Place order → invoice PDF downloads → order goes to tracking & driver panel.
+            </div>
+
+            <button class="btn primary" style="width:100%;margin-top:10px" onclick="Orders.placeFromCart()">
+              Place Order & Download Bill (PDF)
+            </button>
+          </div>
+        </div>
+      </aside>
     </div>
 
-    <div class="card" style="margin-top:12px;background:linear-gradient(135deg,#eff6ff,#ffffff);border:1px solid rgba(37,99,235,0.18)">
-      <div style="font-weight:1000;margin-bottom:6px">UPI Payment (Optional)</div>
-      <div class="small">Pay to UPI ID: <b>brave2arjun2812@oksbi</b></div>
-      <div class="btnRow" style="margin-top:10px">
-        <a class="btn primary" id="upiPayBtn" href="#" target="_blank" rel="noopener">Pay Now via UPI</a>
-      </div>
-      <div class="small" style="margin-top:8px">After paying, share screenshot/UTR on WhatsApp while placing order.</div>
+    <div class="muted" style="padding:14px;text-align:center">
+      © <span id="year"></span> UK Mart • Single-page demo (GitHub Pages friendly)
     </div>
+  </main>
 
-    <div class="btnRow" style="margin-top:12px">
-      <button class="btn primary" onclick="placeOrder()">Place Order (WhatsApp)</button>
-      <button class="btn" onclick="copyOrderText()">Copy Order Text</button>
-    </div>
+  <!-- TOAST -->
+  <div class="toastWrap" id="toastWrap"></div>
 
-    <div class="small" style="margin-top:10px">
-      WhatsApp Order Number: <b>6205875215</b>
-    </div>
-  </section>
+  <!-- MODALS -->
+  <div id="modalBackdrop" class="modalBackdrop" onclick="Modal.backdropClose(event)">
+    <!-- ACCOUNT -->
+    <div class="modal" id="modal-account" style="display:none" onclick="event.stopPropagation()">
+      <div class="modalHead"><div class="title">Account</div><button onclick="Modal.close()">Close</button></div>
+      <div class="modalBody">
+        <div class="twoCol">
+          <div>
+            <h3 style="margin:0 0 8px">Login</h3>
+            <div class="field"><label>Phone/Email</label><input id="loginId" placeholder="example@gmail.com"/></div>
+            <div class="field"><label>Password</label><input id="loginPass" type="password" placeholder="••••••••"/></div>
+            <button class="btn primary" onclick="Account.login()" style="margin-top:10px">Login</button>
+            <button class="btn" onclick="Account.logout()" style="margin-top:10px">Logout</button>
+            <div class="note" id="accountStatus"></div>
+          </div>
 
-  <!-- CONTACT -->
-  <section id="contact" class="card" style="margin-top:14px">
-    <h3 style="margin:0 0 10px;font-size:20px">Contact</h3>
-
-    <div class="grid" style="grid-template-columns:repeat(3,1fr)">
-      <div class="product">
-        <div class="prodImg" style="height:110px">📍</div>
-        <h3 style="margin:0">Address</h3>
-        <div class="small" style="line-height:1.8">
-          Rasikpur, Badhaipara,<br/>
-          Near Sharma Ekta Club,<br/>
-          Railway Station Road,<br/>
-          Dumka, Jharkhand 814101
+          <div>
+            <h3 style="margin:0 0 8px">Register</h3>
+            <div class="field"><label>Name</label><input id="regName" placeholder="Your name"/></div>
+            <div class="field"><label>Phone/Email</label><input id="regId" placeholder="example@gmail.com"/></div>
+            <div class="field"><label>Password</label><input id="regPass" type="password" placeholder="Create password"/></div>
+            <div class="field">
+              <label>Role</label>
+              <select id="regRole">
+                <option value="customer">Customer</option>
+                <option value="seller">Vendor</option>
+                <option value="driver">Delivery Partner</option>
+              </select>
+            </div>
+            <button class="btn primary" onclick="Account.register()" style="margin-top:10px">Create account</button>
+            <div class="note">Vendor adds products. Driver can deliver & see earnings (demo). Admin dashboard is separate.</div>
+          </div>
         </div>
       </div>
+    </div>
 
-      <div class="product">
-        <div class="prodImg" style="height:110px">📞</div>
-        <h3 style="margin:0">Phone (24×7)</h3>
-        <div class="small" style="line-height:1.9">
-          <a href="tel:+916205875215"><u>6205875215</u></a><br/>
-          <a href="tel:+919955498516"><u>9955498516</u></a>
+    <!-- TRACK DELIVERY (CUSTOMER) -->
+    <div class="modal" id="modal-track" style="display:none" onclick="event.stopPropagation()">
+      <div class="modalHead"><div class="title">Track Delivery</div><button onclick="Modal.close()">Close</button></div>
+      <div class="modalBody">
+        <div class="twoCol">
+          <div>
+            <div class="note">
+              Select your last order (demo). You will see delivery boy details + ETA + live map.
+            </div>
+            <div class="hr"></div>
+
+            <div class="field">
+              <label>Select order</label>
+              <select id="trackOrderSelect" onchange="Tracking.loadCustomerView()"></select>
+            </div>
+
+            <div class="hr"></div>
+
+            <div class="kv"><div class="k">Status</div><div id="custStatus" class="pill">—</div></div>
+            <div class="kv"><div class="k">ETA</div><div id="custETA">—</div></div>
+            <div class="kv"><div class="k">Delivery partner</div><div id="custDriver">—</div></div>
+            <div class="kv"><div class="k">Delivery phone</div><div id="custDriverPhone">—</div></div>
+
+            <div class="hr"></div>
+            <div class="note">
+              <b>Delivery Address</b><br/>
+              <span id="custAddress">—</span>
+            </div>
+          </div>
+
+          <div>
+            <div class="mapBox" id="customerMap"></div>
+            <div class="note" id="custMapHint">Map loads when order selected.</div>
+          </div>
         </div>
       </div>
+    </div>
 
-      <div class="product">
-        <div class="prodImg" style="height:110px">💬</div>
-        <h3 style="margin:0">WhatsApp</h3>
-        <div class="small">
-          <a href="https://wa.me/916205875215" target="_blank" rel="noopener"><u>Chat on WhatsApp</u></a>
+    <!-- DRIVER PANEL -->
+    <div class="modal" id="modal-driver" style="display:none" onclick="event.stopPropagation()">
+      <div class="modalHead"><div class="title">Delivery Partner Panel</div><button onclick="Modal.close()">Close</button></div>
+      <div class="modalBody">
+        <div class="note">
+          Login as Delivery Partner to see assigned orders, pickup/drop details, live map (demo), and earnings.
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="twoCol">
+          <div>
+            <div class="field">
+              <label>Assigned order</label>
+              <select id="driverOrderSelect" onchange="Driver.loadOrder()"></select>
+            </div>
+
+            <div class="hr"></div>
+
+            <div class="kv"><div class="k">Status</div><div id="drvStatus" class="pill">—</div></div>
+            <div class="kv"><div class="k">Customer</div><div id="drvCustomer">—</div></div>
+            <div class="kv"><div class="k">Customer phone</div><div id="drvCustomerPhone">—</div></div>
+
+            <div class="hr"></div>
+
+            <div class="note">
+              <b>Pickup</b> (UK Mart Store)<br/>
+              <span id="drvPickup">—</span>
+            </div>
+            <div class="note">
+              <b>Drop</b><br/>
+              <span id="drvDrop">—</span>
+            </div>
+
+            <div class="hr"></div>
+
+            <div style="display:flex;gap:10px;flex-wrap:wrap">
+              <button class="btn" onclick="Driver.markPicked()">Mark Picked Up</button>
+              <button class="btn green" onclick="Driver.markDelivered()">Mark Delivered</button>
+              <button class="btn" onclick="Driver.toggleSim()">Start/Stop Live (demo)</button>
+            </div>
+
+            <div class="note" id="drvMsg"></div>
+
+            <div class="hr"></div>
+            <h3 style="margin:0 0 8px">Earnings (demo)</h3>
+            <div class="kv"><div class="k">Wallet balance</div><div id="drvWallet">₹0</div></div>
+            <div class="kv"><div class="k">Pending payouts</div><div id="drvPending">₹0</div></div>
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:10px">
+              <button class="btn primary" onclick="Driver.requestPayout()">Request payout</button>
+              <button class="btn" onclick="Driver.clearWalletDemo()">Reset earnings (demo)</button>
+            </div>
+            <div class="note tiny">Real payout needs backend/UPI integration. This is a demo ledger.</div>
+          </div>
+
+          <div>
+            <div class="mapBox" id="driverMap"></div>
+            <div class="note" id="drvMapHint">Map loads when order selected.</div>
+
+            <div class="hr"></div>
+            <div class="tableWrap">
+              <table>
+                <thead><tr><th>Time</th><th>Event</th></tr></thead>
+                <tbody id="drvLog"></tbody>
+              </table>
+            </div>
+          </div>
         </div>
       </div>
     </div>
-  </section>
 
-  <!-- ADMIN (same file) -->
-  <section id="admin" class="card" style="margin-top:14px">
-    <div class="row">
-      <div>
-        <h3 style="margin:0;font-size:20px">Admin Panel (Add / Edit Products)</h3>
-        <div class="small">Products save on this phone/browser. (Same phone me site open karoge to updates dikhenge.)</div>
-      </div>
-      <div class="btnRow">
-        <button class="btn soft" onclick="exportProducts()">Export</button>
-        <label class="btn soft" style="display:inline-block">
-          Import <input type="file" accept="application/json" onchange="importProducts(event)" style="display:none">
-        </label>
-        <button class="btn soft" onclick="resetProducts()">Reset Default</button>
-      </div>
-    </div>
+    <!-- SELLER -->
+    <div class="modal" id="modal-seller" style="display:none" onclick="event.stopPropagation()">
+      <div class="modalHead"><div class="title">Vendor Panel</div><button onclick="Modal.close()">Close</button></div>
+      <div class="modalBody">
+        <div class="note">
+          Login as Vendor to add products. Vendor site charge is hidden from customers and applies after 90 days (profit-based demo).
+        </div>
+        <div class="hr"></div>
 
-    <div class="card" style="margin-top:12px;background:var(--soft);border:1px solid var(--line);box-shadow:none">
-      <b>Image kaise add kare?</b>
-      <div class="small" style="margin-top:6px">
-        1) Image URL paste karo (best) <br/>
-        2) Ya “Upload Photo” use karo (mobile se) — photo save ho jayegi.
-      </div>
-    </div>
+        <div class="twoCol">
+          <div>
+            <div class="field"><label>Product name</label><input id="spName" placeholder="e.g., Toor Dal 1kg"/></div>
+            <div class="field"><label>Category</label><select id="spCat"></select></div>
+            <div class="field"><label>Base price (₹)</label><input id="spPrice" type="number" placeholder="e.g., 140"/></div>
+            <div class="field">
+              <label>Status</label>
+              <select id="spStatus">
+                <option value="available">Available</option>
+                <option value="out">Out of stock</option>
+                <option value="unavailable">Unavailable</option>
+              </select>
+            </div>
+            <div class="field"><label>Image URL (optional)</label><input id="spImg" placeholder="https://..."/></div>
+            <button class="btn primary" onclick="Seller.add()" style="margin-top:10px">Save product</button>
+            <button class="btn" onclick="Seller.clearMine()" style="margin-top:10px">Clear my products</button>
+            <div class="note" id="sellerMsg"></div>
+          </div>
 
-    <div style="margin-top:12px" class="adminGrid">
-      <div>
-        <label>Product Name</label>
-        <input id="ap_name" placeholder="e.g. Rice (1 kg)">
-      </div>
-      <div>
-        <label>Category</label>
-        <select id="ap_cat">
-          <option>Staples</option>
-          <option>Spices</option>
-          <option>Snacks</option>
-          <option>Household</option>
-        </select>
-      </div>
-      <div>
-        <label>Price (₹)</label>
-        <input id="ap_price" type="number" placeholder="e.g. 65">
-      </div>
-    </div>
+          <div>
+            <div class="tableWrap">
+              <table>
+                <thead><tr><th>My products</th><th>Status</th><th>Base</th></tr></thead>
+                <tbody id="sellerTable"></tbody>
+              </table>
+            </div>
 
-    <div style="margin-top:10px" class="adminGrid">
-      <div style="grid-column: span 2">
-        <label>Image URL (optional)</label>
-        <input id="ap_imgurl" placeholder="e.g. https://.../rice.jpg OR assets/rice.jpg">
-      </div>
-      <div>
-        <label>Upload Photo (optional)</label>
-        <input id="ap_imgfile" type="file" accept="image/*">
+            <div class="hr"></div>
+            <div class="note" style="font-weight:1200">Vendor fee (hidden)</div>
+            <div class="note" id="vendorFeeBox"></div>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="btnRow" style="margin-top:12px">
-      <button class="btn soft" onclick="clearAdminForm()">Clear</button>
-      <button class="btn primary" onclick="saveAdminProduct()">Save Product</button>
+    <!-- ADMIN -->
+    <div class="modal" id="modal-admin" style="display:none" onclick="event.stopPropagation()">
+      <div class="modalHead"><div class="title">Admin Dashboard</div><button onclick="Modal.close()">Close</button></div>
+      <div class="modalBody">
+        <div class="note">
+          Admin can view commission + assign delivery partner + view delivery status logs (demo).
+        </div>
+
+        <div class="hr"></div>
+
+        <div class="twoCol">
+          <div>
+            <h3 style="margin:0 0 8px">Commission</h3>
+            <div class="field">
+              <label>Commission mode</label>
+              <select id="commissionMode" onchange="Admin.applyMode()">
+                <option value="auto">Auto (market-based)</option>
+                <option value="manual">Manual override</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Commission %</label>
+              <input id="commissionPct" type="number" min="0" max="50" step="0.5"/>
+            </div>
+            <button class="btn primary" onclick="Admin.save()">Save</button>
+            <button class="btn" onclick="Admin.clearOrders()" style="margin-top:10px">Clear orders (demo)</button>
+
+            <div class="hr"></div>
+            <div class="kv"><div class="k">Total order lines</div><div id="admOrders">0</div></div>
+            <div class="kv"><div class="k">Sales amount</div><div id="admSales">₹0</div></div>
+            <div class="kv"><div class="k">Commission earned</div><div id="admComm">₹0</div></div>
+
+            <div class="hr"></div>
+            <h3 style="margin:0 0 8px">Delivery assignment</h3>
+            <div class="field">
+              <label>Select order</label>
+              <select id="admOrderSelect" onchange="Admin.loadAssign()"></select>
+            </div>
+            <div class="field">
+              <label>Assign driver</label>
+              <select id="admDriverSelect"></select>
+            </div>
+            <button class="btn green" onclick="Admin.assignDriver()">Assign</button>
+            <div class="note" id="admAssignMsg"></div>
+
+            <div class="hr"></div>
+            <h3 style="margin:0 0 8px">Pay driver (demo)</h3>
+            <div class="field">
+              <label>Driver</label>
+              <select id="admPayDriver"></select>
+            </div>
+            <div class="field">
+              <label>Amount (₹)</label>
+              <input id="admPayAmt" type="number" placeholder="e.g., 120"/>
+            </div>
+            <button class="btn primary" onclick="Admin.payDriverDemo()">Mark Paid (demo)</button>
+            <div class="note tiny">Real payout needs backend/UPI. This only updates demo ledger.</div>
+          </div>
+
+          <div>
+            <div class="tableWrap">
+              <table>
+                <thead><tr><th>Time</th><th>Order</th><th>Event</th></tr></thead>
+                <tbody id="admDeliveryLog"></tbody>
+              </table>
+            </div>
+
+            <div class="hr"></div>
+            <div class="tableWrap">
+              <table>
+                <thead><tr><th>Time</th><th>Product</th><th>Qty</th><th>Total</th><th>Commission</th></tr></thead>
+                <tbody id="ordersTable"></tbody>
+              </table>
+            </div>
+            <div class="note">All data stored in browser (localStorage) — GitHub Pages friendly demo.</div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="row" style="margin-top:14px">
-      <b>All Products</b>
-      <input id="ap_search" placeholder="Search product here..." style="max-width:320px" oninput="renderAdminList()">
+    <!-- HELP -->
+    <div class="modal" id="modal-help" style="display:none" onclick="event.stopPropagation()">
+      <div class="modalHead"><div class="title">Help Center</div><button onclick="Modal.close()">Close</button></div>
+      <div class="modalBody">
+        <h3 style="margin:0 0 8px">Quick help</h3>
+        <div class="note" style="font-size:14px;line-height:1.55">
+          <b>1) Create account</b><br/>Menu → Account → Register → choose Customer / Vendor / Driver → Create account.<br/><br/>
+          <b>2) Add products (Vendor)</b><br/>Login as Vendor → Vendor Panel → Save product.<br/><br/>
+          <b>3) Place order & PDF</b><br/>Add to basket → Place Order → invoice PDF downloads.<br/><br/>
+          <b>4) Track delivery</b><br/>Menu → Track Delivery → select order to view map + driver + ETA.<br/><br/>
+          <b>5) Driver delivery</b><br/>Login as Driver → Delivery Partner Panel → select assigned order → Picked up / Delivered.
+        </div>
+
+        <div class="hr"></div>
+        <h3 style="margin:0 0 8px">Customer Support</h3>
+        <div class="note" style="font-size:14px;line-height:1.6">
+          <b>Phone:</b> +91-90000-00000<br/>
+          <b>Email:</b> support@ukmart.example<br/>
+          <b>Hours:</b> 9:00 AM – 8:00 PM
+        </div>
+      </div>
     </div>
 
-    <div id="adminList" style="margin-top:12px;display:grid;gap:10px"></div>
+    <!-- SETTINGS -->
+    <div class="modal" id="modal-settings" style="display:none" onclick="event.stopPropagation()">
+      <div class="modalHead"><div class="title">Settings</div><button onclick="Modal.close()">Close</button></div>
+      <div class="modalBody">
+        <div class="twoCol">
+          <div>
+            <div class="field">
+              <label>Language (saved for future)</label>
+              <select id="langSelect" onchange="Settings.setLang(this.value)">
+                <option value="en">English</option>
+                <option value="hi">Hindi</option>
+                <option value="bn">Bengali</option>
+                <option value="ta">Tamil</option>
+                <option value="te">Telugu</option>
+                <option value="mr">Marathi</option>
+                <option value="gu">Gujarati</option>
+                <option value="kn">Kannada</option>
+                <option value="ml">Malayalam</option>
+                <option value="pa">Punjabi</option>
+              </select>
+            </div>
 
-    <div class="small" style="margin-top:10px">
-      Note: Ye admin “secure login” nahi hai (GitHub HTML static hai). Agar future me real vendors + secure admin chahiye, to Firebase/Backend add karna hoga.
-    </div>
-  </section>
+            <div class="field">
+              <label>Delivery area</label>
+              <select id="areaSelect" onchange="Settings.setArea(this.value)">
+                <option value="">Not set</option>
+                <option value="Jharsuguda">Jharsuguda</option>
+                <option value="Brajrajnagar">Brajrajnagar</option>
+                <option value="Dumka">Dumka</option>
+                <option value="Madhupur">Madhupur</option>
+              </select>
+            </div>
 
-</main>
+            <div class="note">UI is English by default. Language selection is stored for future expansion.</div>
+          </div>
 
-<footer>
-  <div class="container footGrid">
-    <div>
-      <b>Umesh Kirana Store</b><br/>
-      Rasikpur, Badhaipara, Near Sharma Ekta Club, Railway Station Road, Dumka, Jharkhand 814101
-      <div class="small" style="margin-top:6px">Delivery within 10 km • Open 24×7</div>
+          <div>
+            <div class="note">
+              Live tracking + payouts become “real” only with backend (Mode B). This demo uses localStorage + simulated live movement.
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-    <div>
-      <b>Quick Links</b><br/>
-      <a href="#shop">Shop</a><br/>
-      <a href="#cart">Cart</a><br/>
-      <a href="#checkout">Checkout</a><br/>
-      <a href="#admin">Admin</a><br/>
-      <a href="#contact">Contact</a>
-    </div>
-    <div>
-      <b>Payment</b><br/>
-      UPI: brave2arjun2812@oksbi<br/>
-      WhatsApp: <a href="https://wa.me/916205875215" target="_blank" rel="noopener">6205875215</a><br/>
-      Call: 6205875215 / 9955498516
+
+    <!-- SEE ALL PRODUCTS MODAL -->
+    <div class="modal" id="modal-seeall" style="display:none" onclick="event.stopPropagation()">
+      <div class="modalHead">
+        <div class="title" id="seeAllTitle">All products</div>
+        <button onclick="Modal.close()">Close</button>
+      </div>
+      <div class="modalBody">
+        <div class="tiny" id="seeAllHint"></div>
+        <div class="gridCards" id="seeAllGrid"></div>
+      </div>
     </div>
   </div>
-  <div class="container" style="margin-top:10px">
-    © <span id="year"></span> Umesh Kirana Store, Dumka
-  </div>
-</footer>
 
 <script>
-  // STORE DETAILS (fixed)
-  const WHATSAPP_NUMBER = "916205875215";
-  const STORE_UPI_ID = "brave2arjun2812@oksbi";
-  const STORE_UPI_NAME = "Umesh Kirana Store";
+/* ========= Storage ========= */
+const LS = {
+  get(k, d){ try{ const v = JSON.parse(localStorage.getItem(k)); return (v===null||v===undefined)?d:v; }catch(e){ return d; } },
+  set(k, v){ localStorage.setItem(k, JSON.stringify(v)); },
+  del(k){ localStorage.removeItem(k); }
+};
 
-  // DEFAULT PRODUCTS (fallback)
-  const defaultProducts = [
-    {id:1,  name:"Rice (1 kg)",               category:"Staples",   price:65,  image:""},
-    {id:2,  name:"Wheat Flour / Atta (1 kg)", category:"Staples",   price:55,  image:""},
-    {id:3,  name:"Toor Dal (1 kg)",           category:"Staples",   price:140, image:""},
-    {id:4,  name:"Mustard Oil (1 L)",         category:"Staples",   price:165, image:""},
-    {id:5,  name:"Sugar (1 kg)",              category:"Staples",   price:48,  image:""},
-    {id:6,  name:"Tea (250 g)",               category:"Staples",   price:125, image:""},
-    {id:7,  name:"Turmeric Powder (200 g)",   category:"Spices",    price:45,  image:""},
-    {id:8,  name:"Red Chilli Powder (200 g)", category:"Spices",    price:60,  image:""},
-    {id:9,  name:"Cumin / Jeera (100 g)",     category:"Spices",    price:55,  image:""},
-    {id:10, name:"Biscuits (Pack)",           category:"Snacks",    price:20,  image:""},
-    {id:11, name:"Chips (Pack)",              category:"Snacks",    price:20,  image:""},
-    {id:12, name:"Detergent (1 kg)",          category:"Household", price:95,  image:""},
-  ];
-
-  // PRODUCTS storage key
-  const PRODUCTS_KEY = "uk_products_v1";
-
-  function loadProducts(){
-    try{
-      const saved = JSON.parse(localStorage.getItem(PRODUCTS_KEY) || "null");
-      if(Array.isArray(saved) && saved.length) return saved;
-    }catch(e){}
-    return defaultProducts;
+/* ========= Toast ========= */
+const Toast = {
+  show(title, msg){
+    const wrap=document.getElementById("toastWrap");
+    const el=document.createElement("div");
+    el.className="toast";
+    el.innerHTML = `<div class="t">${title}</div><div class="s">${msg}</div>`;
+    wrap.appendChild(el);
+    setTimeout(()=>{ el.remove(); }, 4500);
   }
-  function saveProducts(){
-    localStorage.setItem(PRODUCTS_KEY, JSON.stringify(products));
-  }
+};
 
-  // Products used by site:
-  let products = loadProducts();
-
-  // CART (saved in browser)
-  const cart = JSON.parse(localStorage.getItem("uk_cart") || "{}"); // {id:qty}
-  const money = n => "₹" + Number(n||0).toFixed(0);
-  const saveCart = () => localStorage.setItem("uk_cart", JSON.stringify(cart));
-
-  function addToCart(id){
-    cart[id] = (cart[id]||0) + 1;
-    saveCart(); renderCart();
-  }
-  function setQty(id, qty){
-    if(qty<=0) delete cart[id]; else cart[id]=qty;
-    saveCart(); renderCart();
-  }
-  function clearCart(){
-    for(const k in cart) delete cart[k];
-    saveCart(); renderCart();
-  }
-
-  function getCartLines(){
-    const lines=[];
-    for(const [id,qty] of Object.entries(cart)){
-      const p = products.find(x=>x.id===Number(id));
-      if(!p) continue;
-      lines.push({...p, qty, lineTotal:p.price*qty});
-    }
-    return lines;
-  }
-
-  function calcTotals(){
-    const lines = getCartLines();
-    const subtotal = lines.reduce((s,x)=>s+x.lineTotal,0);
-    // Delivery rule: Free above ₹499 else ₹30
-    const delivery = (subtotal>=499 || subtotal===0) ? 0 : 30;
-    return {subtotal, delivery, total: subtotal+delivery};
-  }
-
-  function productEmoji(cat){
-    if(cat==="Staples") return "🌾";
-    if(cat==="Spices") return "🧂";
-    if(cat==="Snacks") return "🍪";
-    if(cat==="Household") return "🧼";
-    return "🛒";
-  }
-
-  function renderProducts(){
-    const q = (document.getElementById("search").value||"").toLowerCase().trim();
-    const cat = document.getElementById("category").value;
-
-    const filtered = products.filter(p=>{
-      const mq = !q || String(p.name||"").toLowerCase().includes(q);
-      const mc = (cat==="all") || p.category===cat;
-      return mq && mc;
+/* ========= UI / Modal ========= */
+const UI = {
+  openDrawer(){ document.getElementById("drawer").classList.add("open"); document.getElementById("drawerBackdrop").classList.add("show"); },
+  closeDrawer(){ document.getElementById("drawer").classList.remove("open"); document.getElementById("drawerBackdrop").classList.remove("show"); },
+  scrollTo(id){ const el=document.getElementById(id); if(el) el.scrollIntoView({behavior:"smooth", block:"start"}); }
+};
+const Modal = {
+  open(which){
+    document.getElementById("modalBackdrop").style.display="block";
+    ["account","seller","admin","help","settings","seeall","track","driver"].forEach(x=>{
+      const m=document.getElementById("modal-"+x);
+      if(m) m.style.display = (x===which) ? "block" : "none";
     });
 
-    document.getElementById("productGrid").innerHTML = filtered.map(p=>{
-      const img = p.image ? `<img src="${p.image}" alt="">` : productEmoji(p.category);
-      return `
-        <div class="product">
-          <div class="prodImg">${img}</div>
+    if(which==="account") Account.refresh();
+    if(which==="seller") Seller.refresh();
+    if(which==="admin") Admin.refresh();
+    if(which==="settings") Settings.refresh();
+    if(which==="track") Tracking.refresh();
+    if(which==="driver") Driver.refresh();
+  },
+  close(){ document.getElementById("modalBackdrop").style.display="none"; },
+  backdropClose(e){ if(e.target.id==="modalBackdrop") Modal.close(); }
+};
+
+/* ========= Market pricing (demo) ========= */
+const Market = {
+  index(){
+    const d=new Date();
+    const seed=d.getFullYear()*10000+(d.getMonth()+1)*100+d.getDate();
+    const x=Math.sin(seed)*10000;
+    const frac=x-Math.floor(x);
+    return 0.92+frac*0.26;
+  },
+  price(base, cat){
+    const idx=Market.index();
+    const w=({
+      "Edible Oil & Ghee":1.08,"Spices & Masala":1.06,"Pulses & Beans":1.05,"Rice & Grains":1.03,"Atta & Flour":1.02
+    }[cat]||1.00);
+    return Math.max(1, Math.round(base*idx*w));
+  },
+  autoCommissionPct(){
+    const idx=Market.index();
+    const normalized=(idx-0.92)/0.26;
+    const pct=2.5 + normalized*5.0;
+    return Math.round(pct*10)/10;
+  }
+};
+
+/* ========= Vendor fee hidden (demo) ========= */
+const VendorFee = {
+  initTrialForSeller(sellerId){
+    const key="sellerTrialStart:"+sellerId;
+    let start=LS.get(key,null);
+    if(!start){ start=Date.now(); LS.set(key,start); }
+    return start;
+  },
+  daysSince(start){ return Math.floor((Date.now()-start)/(1000*60*60*24)); },
+  feeDue(profit, days){
+    if(days<90) return 0;
+    const fee=Math.round(profit*0.02);
+    return Math.max(199, fee);
+  }
+};
+
+/* ========= Catalog ========= */
+const Catalog = {
+  storeId:"UKMART_STORE",
+  categories:[
+    "Top Deals","Atta & Flour","Rice & Grains","Pulses & Beans","Edible Oil & Ghee","Spices & Masala",
+    "Sugar, Salt & Jaggery","Tea, Coffee & Beverages","Biscuits & Snacks","Noodles & Pasta","Dairy & Bakery",
+    "Pickles & Chutneys","Cleaning & Household","Personal Care","Baby Care","Stationery"
+  ],
+  catImg:{
+    "Top Deals":"https://images.unsplash.com/photo-1542838132-92c53300491e?auto=format&fit=crop&w=1200&q=60",
+    "Atta & Flour":"https://images.unsplash.com/photo-1589923188900-85dae523342b?auto=format&fit=crop&w=1200&q=60",
+    "Rice & Grains":"https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=1200&q=60",
+    "Pulses & Beans":"https://images.unsplash.com/photo-1615485290382-441e4d14f1c2?auto=format&fit=crop&w=1200&q=60",
+    "Edible Oil & Ghee":"https://images.unsplash.com/photo-1604908176997-431d5c68298d?auto=format&fit=crop&w=1200&q=60",
+    "Spices & Masala":"https://images.unsplash.com/photo-1604909052858-1b00c7c01b2b?auto=format&fit=crop&w=1200&q=60",
+    "Sugar, Salt & Jaggery":"https://images.unsplash.com/photo-1615486368212-9b9f2f5e5e77?auto=format&fit=crop&w=1200&q=60",
+    "Tea, Coffee & Beverages":"https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?auto=format&fit=crop&w=1200&q=60",
+    "Biscuits & Snacks":"https://images.unsplash.com/photo-1604909052866-3b0edc7dfc4d?auto=format&fit=crop&w=1200&q=60",
+    "Noodles & Pasta":"https://images.unsplash.com/photo-1528750997573-59b89d56f4f7?auto=format&fit=crop&w=1200&q=60",
+    "Dairy & Bakery":"https://images.unsplash.com/photo-1545468258-91c3f9efab9f?auto=format&fit=crop&w=1200&q=60",
+    "Pickles & Chutneys":"https://images.unsplash.com/photo-1604909052749-d0f9c83d0f4c?auto=format&fit=crop&w=1200&q=60",
+    "Cleaning & Household":"https://images.unsplash.com/photo-1585421514285-efb74c2b69f7?auto=format&fit=crop&w=1200&q=60",
+    "Personal Care":"https://images.unsplash.com/photo-1583947215259-38e31be8751f?auto=format&fit=crop&w=1200&q=60",
+    "Baby Care":"https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?auto=format&fit=crop&w=1200&q=60",
+    "Stationery":"https://images.unsplash.com/photo-1456735190827-d1262f71b8a3?auto=format&fit=crop&w=1200&q=60"
+  },
+  baseProducts:[ /* (same long list as earlier, shortened here for readability) */
+    {id:"d1", sellerId:"UKMART_STORE", name:"Combo: Rice 5kg + Oil 1L", cat:"Top Deals", base:599, status:"available"},
+    {id:"d2", sellerId:"UKMART_STORE", name:"Combo: Atta 10kg + Sugar 2kg", cat:"Top Deals", base:699, status:"available"},
+    {id:"a1", sellerId:"UKMART_STORE", name:"Wheat Atta 5kg", cat:"Atta & Flour", base:255, status:"available"},
+    {id:"r1", sellerId:"UKMART_STORE", name:"Rice 1kg", cat:"Rice & Grains", base:52, status:"available"},
+    {id:"p1", sellerId:"UKMART_STORE", name:"Toor Dal 1kg", cat:"Pulses & Beans", base:140, status:"available"},
+    {id:"o1", sellerId:"UKMART_STORE", name:"Mustard Oil 1L", cat:"Edible Oil & Ghee", base:152, status:"available"},
+    {id:"s1", sellerId:"UKMART_STORE", name:"Turmeric Powder 200g", cat:"Spices & Masala", base:58, status:"available"},
+    {id:"ss1", sellerId:"UKMART_STORE", name:"Sugar 1kg", cat:"Sugar, Salt & Jaggery", base:46, status:"available"},
+    {id:"b1", sellerId:"UKMART_STORE", name:"Tea 250g", cat:"Tea, Coffee & Beverages", base:118, status:"available"},
+    {id:"c1", sellerId:"UKMART_STORE", name:"Detergent Powder 1kg", cat:"Cleaning & Household", base:95, status:"available"},
+    {id:"pc1", sellerId:"UKMART_STORE", name:"Bath Soap (Pack)", cat:"Personal Care", base:98, status:"available"},
+    {id:"st1", sellerId:"UKMART_STORE", name:"Notebook", cat:"Stationery", base:45, status:"available"},
+  ]
+};
+
+function ensureImages(products){
+  return products.map(p=>{
+    if(p.img) return p;
+    return {...p, img: Catalog.catImg[p.cat] || Catalog.catImg["Top Deals"]};
+  });
+}
+
+/* ========= Demo Geography (Jharsuguda-ish center) ========= */
+const Geo = {
+  // Default store location (demo)
+  storeLatLng: [21.855, 84.005],
+  // Some random area points for demo customer location
+  randomCustomerLatLng(){
+    const [lat, lng] = Geo.storeLatLng;
+    const dLat = (Math.random()-0.5)*0.08;
+    const dLng = (Math.random()-0.5)*0.08;
+    return [lat+dLat, lng+dLng];
+  }
+};
+
+/* ========= Delivery data model (demo) =========
+deliveryOrders: [{orderId, customerId, customerName, customerPhone, addressText, addressLatLng, status, etaMin, driverId, driverName, driverPhone, driverLatLng, createdAt}]
+deliveryLogs: [{t, orderId, event}]
+driverWallet: {driverId: {balance, pending}}
+*/
+const DeliveryDB = {
+  getOrders(){ return LS.get("deliveryOrders", []); },
+  setOrders(v){ LS.set("deliveryOrders", v); },
+  getLogs(){ return LS.get("deliveryLogs", []); },
+  setLogs(v){ LS.set("deliveryLogs", v); },
+  log(orderId, event){
+    const logs = DeliveryDB.getLogs();
+    logs.push({t: Date.now(), orderId, event});
+    DeliveryDB.setLogs(logs);
+  },
+  upsertOrder(order){
+    const list = DeliveryDB.getOrders();
+    const i = list.findIndex(x=>x.orderId===order.orderId);
+    if(i>=0) list[i]=order; else list.push(order);
+    DeliveryDB.setOrders(list);
+  },
+  getOrder(orderId){ return DeliveryDB.getOrders().find(o=>o.orderId===orderId) || null; },
+  walletGetAll(){ return LS.get("driverWallet", {}); },
+  walletSetAll(w){ LS.set("driverWallet", w); },
+  walletEnsure(driverId){
+    const w=DeliveryDB.walletGetAll();
+    if(!w[driverId]) w[driverId]={balance:0,pending:0};
+    DeliveryDB.walletSetAll(w);
+    return w[driverId];
+  },
+  walletAdd(driverId, amt){
+    const w=DeliveryDB.walletGetAll();
+    if(!w[driverId]) w[driverId]={balance:0,pending:0};
+    w[driverId].balance += amt;
+    DeliveryDB.walletSetAll(w);
+  },
+  walletRequest(driverId){
+    const w=DeliveryDB.walletGetAll();
+    if(!w[driverId]) w[driverId]={balance:0,pending:0};
+    w[driverId].pending += w[driverId].balance;
+    w[driverId].balance = 0;
+    DeliveryDB.walletSetAll(w);
+  },
+  walletPay(driverId, amt){
+    const w=DeliveryDB.walletGetAll();
+    if(!w[driverId]) w[driverId]={balance:0,pending:0};
+    w[driverId].pending = Math.max(0, w[driverId].pending - amt);
+    DeliveryDB.walletSetAll(w);
+  }
+};
+
+/* ========= App ========= */
+const App = {
+  state:{ activeCat:"Top Deals", q:"" },
+  init(){
+    document.getElementById("year").textContent = new Date().getFullYear();
+    document.getElementById("marketIndex").textContent = Market.index().toFixed(2);
+    if(LS.get("lang", null)===null) LS.set("lang","en");
+    if(LS.get("area", null)===null) LS.set("area","");
+
+    App.refreshArea();
+    App.renderCatChips();
+    App.render();
+
+    // vendor cat dropdown
+    document.getElementById("spCat").innerHTML = Catalog.categories
+      .filter(c=>c!=="Top Deals")
+      .map(c=>`<option>${c}</option>`).join("");
+
+    Admin.ensureDefaults();
+    Cart.render();
+    Orders.refreshLastOrderLabel();
+  },
+  refreshArea(){
+    const area = LS.get("area","");
+    document.getElementById("areaLabel").textContent = area || "Not set";
+  },
+  allProducts(){
+    const seller = ensureImages(LS.get("sellerProducts", []));
+    const base = ensureImages(Catalog.baseProducts);
+    const map = new Map();
+    [...base, ...seller].forEach(p=>map.set(p.id,p));
+    return [...map.values()];
+  },
+  search(){
+    App.state.q = (document.getElementById("q").value||"").trim();
+    App.render();
+  },
+  reset(){
+    App.state.activeCat = "Top Deals";
+    App.state.q = "";
+    document.getElementById("q").value = "";
+    document.getElementById("stockFilter").value = "all";
+    App.renderCatChips();
+    App.render();
+  },
+  renderCatChips(){
+    const wrap = document.getElementById("catChips");
+    wrap.innerHTML = "";
+    Catalog.categories.forEach(cat=>{
+      const b = document.createElement("button");
+      b.className = "chip" + (App.state.activeCat===cat ? " active": "");
+      b.textContent = cat;
+      b.onclick = ()=>{
+        App.state.activeCat = cat;
+        App.renderCatChips();
+        UI.scrollTo("products");
+        App.render();
+      };
+      wrap.appendChild(b);
+    });
+  },
+  tagHTML(status){
+    if(status==="available") return `<span class="tag good">Available</span>`;
+    if(status==="out") return `<span class="tag warn">Out of stock</span>`;
+    return `<span class="tag bad">Unavailable</span>`;
+  },
+  productCardHTML(p){
+    const price = Market.price(p.base, p.cat);
+    const disabled = (p.status!=="available");
+    const inCart = Cart.qty(p.id);
+    return `
+      <div class="pCard">
+        <img class="pImg" src="${p.img}" alt="${p.name}" loading="lazy">
+        <div class="pad">
           <div class="row">
-            <h3 style="margin:0;font-size:16px">${escapeHtml(p.name)}</h3>
-            <div class="small">${escapeHtml(p.category)}</div>
+            <div>
+              <div class="name">${p.name}</div>
+              <div class="cat">${p.cat}</div>
+            </div>
+            ${App.tagHTML(p.status)}
           </div>
-          <div class="row">
-            <div class="price">${money(p.price)}</div>
-            <button class="btn primary" onclick="addToCart(${p.id})">Add</button>
+          <div class="row" style="margin-top:10px;align-items:center">
+            <div class="price">₹${price}</div>
+            <div class="qty">
+              <button onclick="Cart.dec('${p.id}')" ${inCart<=0 ? "disabled":""}>−</button>
+              <div class="num">${inCart}</div>
+              <button onclick="Cart.inc('${p.id}')" ${disabled ? "disabled":""}>+</button>
+            </div>
           </div>
-          <div class="small">Delivery: Dumka + 10 km</div>
+        </div>
+      </div>
+    `;
+  },
+  render(){
+    const stockFilter = document.getElementById("stockFilter").value;
+    const q = App.state.q.toLowerCase();
+    let products = App.allProducts();
+
+    if(q){
+      products = products.filter(p=> (p.name+" "+p.cat).toLowerCase().includes(q));
+    }
+    if(stockFilter !== "all"){
+      products = products.filter(p=>p.status===stockFilter);
+    }
+
+    const byCat = new Map();
+    Catalog.categories.forEach(c=>byCat.set(c, []));
+    products.forEach(p=>{
+      if(!byCat.has(p.cat)) byCat.set(p.cat, []);
+      byCat.get(p.cat).push(p);
+    });
+
+    let orderCats = [...Catalog.categories];
+    if(!q){
+      orderCats = [App.state.activeCat, ...orderCats.filter(c=>c!==App.state.activeCat)];
+    } else {
+      orderCats = orderCats.filter(c=>(byCat.get(c)||[]).length>0);
+    }
+
+    const sections = document.getElementById("sections");
+    sections.innerHTML = "";
+
+    orderCats.forEach(cat=>{
+      const list = byCat.get(cat) || [];
+      if(q && list.length===0) return;
+      const rowItems = list.slice(0, 12);
+
+      const sec = document.createElement("section");
+      sec.className = "section";
+      sec.innerHTML = `
+        <div class="sectionHead">
+          <div>
+            <h2>${cat}</h2>
+            <div class="tiny">${list.length} items</div>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+            <button class="btn" onclick="App.openSeeAll('${cat.replace(/'/g,"\\'")}')">See all</button>
+          </div>
+        </div>
+        <div class="rowWrap">
+          <div class="hRow">
+            ${rowItems.map(p=>App.productCardHTML(p)).join("") || `<div class="muted" style="font-weight:1100">No items</div>`}
+          </div>
+          <div class="tiny">Tip: swipe/scroll horizontally →</div>
         </div>
       `;
-    }).join("");
+      sections.appendChild(sec);
+    });
+
+    Cart.renderTotals();
+  },
+  openSeeAll(cat){
+    const stockFilter = document.getElementById("stockFilter").value;
+    const q = App.state.q.toLowerCase();
+    let products = App.allProducts().filter(p=>p.cat===cat);
+
+    if(q) products = products.filter(p=>(p.name+" "+p.cat).toLowerCase().includes(q));
+    if(stockFilter!=="all") products = products.filter(p=>p.status===stockFilter);
+
+    document.getElementById("seeAllTitle").textContent = `${cat} — All products`;
+    document.getElementById("seeAllHint").textContent = q ? `Filtered by search: "${App.state.q}"` : `Browse all items in ${cat}`;
+    document.getElementById("seeAllGrid").innerHTML = products.map(p=>App.productCardHTML(p)).join("") || `<div class="muted" style="font-weight:1100">No products found.</div>`;
+
+    document.getElementById("modalBackdrop").style.display="block";
+    ["account","seller","admin","help","settings","seeall","track","driver"].forEach(x=>{
+      const m=document.getElementById("modal-"+x);
+      if(m) m.style.display = (x==="seeall") ? "block" : "none";
+    });
   }
+};
 
-  function makeUpiLink(amount){
-    const pa = encodeURIComponent(STORE_UPI_ID);
-    const pn = encodeURIComponent(STORE_UPI_NAME);
-    const am = encodeURIComponent(String(amount||0));
-    const tn = encodeURIComponent("Grocery Order - Umesh Kirana Store");
-    return `upi://pay?pa=${pa}&pn=${pn}&am=${am}&cu=INR&tn=${tn}`;
-  }
-
-  function renderCart(){
-    const lines = getCartLines();
-    const cartBox = document.getElementById("cartItems");
-
-    if(lines.length===0){
-      cartBox.innerHTML = `<p class="small">Your cart is empty. Go to <a href="#shop"><u>Shop</u></a> to add items.</p>`;
-    }else{
-      cartBox.innerHTML = lines.map(p=>`
-        <div class="cartLine">
-          <div>
-            <div style="font-weight:1000">${escapeHtml(p.name)}</div>
-            <div class="small">${money(p.price)} each</div>
-          </div>
-          <div class="row" style="gap:10px">
-            <div class="qtyBox">
-              <button class="btn" onclick="setQty(${p.id}, ${p.qty-1})">-</button>
-              <div style="min-width:26px;text-align:center;font-weight:1000">${p.qty}</div>
-              <button class="btn" onclick="setQty(${p.id}, ${p.qty+1})">+</button>
-            </div>
-            <div class="price">${money(p.lineTotal)}</div>
-          </div>
-        </div>
-      `).join("");
+/* ========= Cart ========= */
+const Cart = {
+  get(){ return LS.get("cart", {}); },
+  set(c){ LS.set("cart", c); },
+  qty(pid){ const c=Cart.get(); return Number(c[pid]||0); },
+  inc(pid){
+    const p = App.allProducts().find(x=>x.id===pid);
+    if(!p || p.status!=="available") return;
+    const c = Cart.get();
+    c[pid] = (c[pid]||0) + 1;
+    Cart.set(c);
+    App.render(); Cart.render();
+  },
+  dec(pid){
+    const c = Cart.get();
+    c[pid] = (c[pid]||0) - 1;
+    if(c[pid] <= 0) delete c[pid];
+    Cart.set(c);
+    App.render(); Cart.render();
+  },
+  clear(){ Cart.set({}); App.render(); Cart.render(); },
+  subtotal(){
+    const c=Cart.get(); const prods=App.allProducts();
+    let sum=0;
+    for(const pid in c){
+      const p = prods.find(x=>x.id===pid);
+      if(!p) continue;
+      sum += Market.price(p.base, p.cat) * Number(c[pid]||0);
     }
+    return sum;
+  },
+  tax(sub){ return Math.round(sub*0.02); },
+  render(){
+    const wrap=document.getElementById("basketItems");
+    const c=Cart.get(); const prods=App.allProducts();
+    const entries=Object.keys(c);
 
-    const {subtotal, delivery, total} = calcTotals();
-    document.getElementById("subtotal").innerText = money(subtotal);
-    document.getElementById("deliveryFee").innerText = money(delivery);
-    document.getElementById("total").innerText = money(total);
-    document.getElementById("upiPayBtn").href = makeUpiLink(total);
-  }
-
-  function buildOrderText(){
-    const name = document.getElementById("custName").value.trim();
-    const phone = document.getElementById("custPhone").value.trim();
-    const address = document.getElementById("custAddress").value.trim();
-    const payment = document.getElementById("paymentMethod").value;
-
-    const lines = getCartLines();
-    const {subtotal, delivery, total} = calcTotals();
-
-    let text = `*New Order - Umesh Kirana Store (Dumka)*%0A`;
-    text += `Name: ${encodeURIComponent(name||"-")}%0A`;
-    text += `Phone: ${encodeURIComponent(phone||"-")}%0A`;
-    text += `Address: ${encodeURIComponent(address||"-")}%0A`;
-    text += `Payment: ${encodeURIComponent(payment)}%0A`;
-    text += `Delivery Area: Dumka + 10 km%0A%0A`;
-    text += `*Items*%0A`;
-    lines.forEach(p=>{
-      text += `- ${encodeURIComponent(p.name)} x${p.qty} = ${encodeURIComponent(money(p.lineTotal))}%0A`;
-    });
-    text += `%0ASubtotal: ${encodeURIComponent(money(subtotal))}%0A`;
-    text += `Delivery: ${encodeURIComponent(money(delivery))}%0A`;
-    text += `*Total: ${encodeURIComponent(money(total))}*%0A`;
-    text += `%0AUPI: ${encodeURIComponent(STORE_UPI_ID)}%0A(If paid via UPI, share screenshot/UTR.)`;
-    return text;
-  }
-
-  function placeOrder(){
-    const lines = getCartLines();
-    if(lines.length===0){ alert("Your cart is empty. Add items first."); location.hash="#shop"; return; }
-
-    const name = document.getElementById("custName").value.trim();
-    const phone = document.getElementById("custPhone").value.trim();
-    const address = document.getElementById("custAddress").value.trim();
-    if(!name || !phone || !address){ alert("Please fill Name, Phone, and Address."); return; }
-
-    const waUrl = `https://wa.me/${WHATSAPP_NUMBER}?text=${buildOrderText()}`;
-    window.open(waUrl, "_blank");
-  }
-
-  function copyOrderText(){
-    const lines = getCartLines();
-    if(lines.length===0){ alert("Cart is empty."); return; }
-
-    const {subtotal, delivery, total} = calcTotals();
-    const name = document.getElementById("custName").value.trim() || "-";
-    const phone = document.getElementById("custPhone").value.trim() || "-";
-    const address = document.getElementById("custAddress").value.trim() || "-";
-    const payment = document.getElementById("paymentMethod").value;
-
-    let text = `New Order - Umesh Kirana Store (Dumka)\n`;
-    text += `Name: ${name}\nPhone: ${phone}\nAddress: ${address}\nPayment: ${payment}\nDelivery Area: Dumka + 10 km\n\nItems:\n`;
-    getCartLines().forEach(p=> text += `- ${p.name} x${p.qty} = ${money(p.lineTotal)}\n`);
-    text += `\nSubtotal: ${money(subtotal)}\nDelivery: ${money(delivery)}\nTotal: ${money(total)}\nUPI: ${STORE_UPI_ID}\n(If paid via UPI, share screenshot/UTR.)`;
-
-    navigator.clipboard.writeText(text).then(()=>alert("Order text copied!"));
-  }
-
-  // CATEGORY helper
-  function setCategory(cat){
-    const sel = document.getElementById("category");
-    if(!sel) return;
-    sel.value = cat;
-    renderProducts();
-  }
-
-  // Sync top search with shop search
-  function syncSearchTop(){
-    const top = document.getElementById("searchTop");
-    const shop = document.getElementById("search");
-    if(!top || !shop) return;
-    top.addEventListener("input", ()=>{
-      shop.value = top.value;
-      renderProducts();
-    });
-  }
-
-  // ------- ADMIN (same file) -------
-  let editingId = null;
-
-  function clearAdminForm(){
-    editingId = null;
-    document.getElementById("ap_name").value = "";
-    document.getElementById("ap_cat").value = "Staples";
-    document.getElementById("ap_price").value = "";
-    document.getElementById("ap_imgurl").value = "";
-    document.getElementById("ap_imgfile").value = "";
-  }
-
-  function getNextId(){
-    return (products.reduce((m,p)=>Math.max(m, Number(p.id)||0), 0) || 0) + 1;
-  }
-
-  async function saveAdminProduct(){
-    const name = document.getElementById("ap_name").value.trim();
-    const category = document.getElementById("ap_cat").value;
-    const price = Number(document.getElementById("ap_price").value);
-    const imgUrl = document.getElementById("ap_imgurl").value.trim();
-    const file = document.getElementById("ap_imgfile").files?.[0];
-
-    if(!name || !price || price<=0){
-      alert("Please enter Name and valid Price.");
+    if(entries.length===0){
+      wrap.innerHTML = `<div class="muted" style="font-weight:1100">Basket is empty.</div>`;
+      Cart.renderTotals();
       return;
     }
 
-    let image = imgUrl || "";
-    // If file uploaded, convert to base64 (works on mobile)
-    if(file){
-      image = await fileToDataURL(file);
-    }
-
-    if(editingId){
-      const idx = products.findIndex(p=>p.id===editingId);
-      if(idx>=0){
-        products[idx] = {...products[idx], name, category, price, image};
-      }
-    }else{
-      products.push({id:getNextId(), name, category, price, image});
-    }
-
-    saveProducts();
-    clearAdminForm();
-    renderProducts();
-    renderAdminList();
-    alert("Saved! Now your shop products updated.");
-  }
-
-  function editAdminProduct(id){
-    const p = products.find(x=>x.id===id);
-    if(!p) return;
-    editingId = id;
-    document.getElementById("ap_name").value = p.name || "";
-    document.getElementById("ap_cat").value = p.category || "Staples";
-    document.getElementById("ap_price").value = p.price || "";
-    document.getElementById("ap_imgurl").value = (p.image && p.image.startsWith("data:")) ? "" : (p.image || "");
-    document.getElementById("ap_imgfile").value = "";
-    location.hash = "#admin";
-    window.scrollTo({top:0, behavior:"smooth"});
-  }
-
-  function deleteAdminProduct(id){
-    if(!confirm("Delete this product?")) return;
-    products = products.filter(p=>p.id!==id);
-    saveProducts();
-    renderProducts();
-    renderAdminList();
-  }
-
-  function resetProducts(){
-    if(!confirm("Reset all products to default?")) return;
-    products = [...defaultProducts];
-    saveProducts();
-    renderProducts();
-    renderAdminList();
-    alert("Reset done.");
-  }
-
-  function renderAdminList(){
-    const q = (document.getElementById("ap_search").value||"").toLowerCase().trim();
-    const show = products.filter(p=>!q || String(p.name||"").toLowerCase().includes(q));
-
-    document.getElementById("adminList").innerHTML = show.map(p=>{
-      const img = p.image
-        ? `<div class="adminThumb"><img src="${p.image}" alt=""></div>`
-        : `<div class="adminThumb"><span class="small">No image</span></div>`;
+    wrap.innerHTML = entries.map(pid=>{
+      const p = prods.find(x=>x.id===pid);
+      if(!p) return "";
+      const qty = Number(c[pid]||0);
+      const unit = Market.price(p.base, p.cat);
       return `
-        <div class="adminItem">
-          <div class="row">
-            <div style="flex:1">
-              <b>${escapeHtml(p.name)}</b>
-              <div class="small">${escapeHtml(p.category)} • ₹${Number(p.price||0)}</div>
-            </div>
-            <div class="btnRow">
-              <button class="btn soft" onclick="editAdminProduct(${p.id})">Edit</button>
-              <button class="btn" onclick="deleteAdminProduct(${p.id})">Delete</button>
-            </div>
+        <div class="basketItem">
+          <img src="${p.img}" alt="${p.name}" loading="lazy">
+          <div class="info">
+            <div class="t">${p.name}</div>
+            <div class="s">${qty} × ₹${unit} = <b>₹${qty*unit}</b></div>
           </div>
-          <div style="margin-top:10px">${img}</div>
-          <div class="small" style="margin-top:8px">ID: ${p.id}</div>
+          <div class="qty">
+            <button onclick="Cart.dec('${p.id}')">−</button>
+            <div class="num">${qty}</div>
+            <button onclick="Cart.inc('${p.id}')" ${p.status!=="available" ? "disabled":""}>+</button>
+          </div>
         </div>
       `;
     }).join("");
+
+    Cart.renderTotals();
+  },
+  renderTotals(){
+    const sub = Cart.subtotal();
+    const tax = Cart.tax(sub);
+    const grand = sub + tax;
+    document.getElementById("subTotal").textContent = "₹" + sub;
+    document.getElementById("taxTotal").textContent = "₹" + tax;
+    document.getElementById("grandTotal").textContent = "₹" + grand;
   }
+};
 
-  function exportProducts(){
-    const blob = new Blob([JSON.stringify(products,null,2)], {type:"application/json"});
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "products.json";
-    a.click();
-    URL.revokeObjectURL(url);
-  }
+/* ========= Invoice PDF ========= */
+const InvoicePDF = {
+  download({orderId,time,area,items,sub,tax,grand}){
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    const margin=14;
+    let y=14;
 
-  async function importProducts(event){
-    const file = event.target.files?.[0];
-    if(!file) return;
-    const text = await file.text();
-    try{
-      const data = JSON.parse(text);
-      if(!Array.isArray(data)) throw new Error("not array");
-      const cleaned = data.map((p,i)=>({
-        id: Number(p.id) || (i+1),
-        name: String(p.name||"").trim(),
-        category: String(p.category||"Staples"),
-        price: Number(p.price)||0,
-        image: String(p.image||"")
-      })).filter(p=>p.name && p.price>0);
+    doc.setFont("helvetica","bold");
+    doc.setFontSize(16);
+    doc.text("UK Mart — Invoice", margin, y);
 
-      products = cleaned.length ? cleaned : [...defaultProducts];
-      saveProducts();
-      renderProducts();
-      renderAdminList();
-      alert("Imported successfully!");
-    }catch(e){
-      alert("Invalid JSON file.");
-    }
-  }
+    doc.setFont("helvetica","normal");
+    doc.setFontSize(11);
+    y+=8;
+    doc.text(`Invoice No: ${orderId}`, margin, y); y+=6;
+    doc.text(`Date: ${new Date(time).toLocaleString()}`, margin, y); y+=6;
+    doc.text(`Area: ${area}`, margin, y);
 
-  function fileToDataURL(file){
-    return new Promise((resolve,reject)=>{
-      const reader = new FileReader();
-      reader.onload = ()=> resolve(String(reader.result));
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
+    y+=10;
+    doc.setFont("helvetica","bold");
+    doc.text("Items", margin, y); y+=6;
+
+    doc.setFont("helvetica","bold");
+    doc.text("Product", margin, y);
+    doc.text("Qty", 120, y);
+    doc.text("Price", 140, y);
+    doc.text("Total", 196, y, {align:"right"});
+    y+=4;
+    doc.setDrawColor(200);
+    doc.line(margin, y, 196, y);
+    y+=6;
+
+    doc.setFont("helvetica","normal");
+    items.forEach(it=>{
+      if(y>270){ doc.addPage(); y=14; }
+      doc.text(String(it.name).slice(0,34), margin, y);
+      doc.text(String(it.qty), 122, y);
+      doc.text(`₹${it.unit}`, 140, y);
+      doc.text(`₹${it.total}`, 196, y, {align:"right"});
+      y+=7;
     });
-  }
 
-  function escapeHtml(str){
-    return String(str||"")
-      .replaceAll("&","&amp;")
-      .replaceAll("<","&lt;")
-      .replaceAll(">","&gt;")
-      .replaceAll('"',"&quot;")
-      .replaceAll("'","&#039;");
-  }
+    y+=4;
+    doc.line(margin, y, 196, y);
+    y+=8;
 
-  // INIT
-  document.getElementById("year").innerText = new Date().getFullYear();
-  syncSearchTop();
-  renderProducts();
-  renderCart();
-  renderAdminList();
+    doc.setFont("helvetica","bold");
+    doc.text(`Subtotal: ₹${sub}`, 196, y, {align:"right"}); y+=7;
+    doc.text(`Tax/Handling: ₹${tax}`, 196, y, {align:"right"}); y+=7;
+    doc.text(`Grand Total: ₹${grand}`, 196, y, {align:"right"});
+
+    y+=12;
+    doc.setFont("helvetica","normal");
+    doc.setFontSize(10);
+    doc.text("Thank you for shopping with UK Mart.", margin, y);
+
+    doc.save(`UKMart_Invoice_${orderId}.pdf`);
+  }
+};
+
+/* ========= Orders + Commission + Delivery order creation ========= */
+const Orders = {
+  refreshLastOrderLabel(){
+    const last = LS.get("lastOrderId", null);
+    document.getElementById("lastOrderLabel").textContent = last ? last : "None";
+  },
+  placeFromCart(){
+    const cart = Cart.get();
+    const pids = Object.keys(cart);
+    if(pids.length===0){ alert("Basket is empty."); return; }
+
+    const all = App.allProducts();
+    const commissionPct = Admin.getCommissionPct();
+    const now = Date.now();
+    const orderId = "UKM-" + String(now).slice(-8);
+
+    let orders = LS.get("orders", []);
+    let items = [];
+    let sub = 0;
+
+    for(const pid of pids){
+      const p = all.find(x=>x.id===pid);
+      if(!p || p.status!=="available") continue;
+
+      const qty = Number(cart[pid]||0);
+      const unit = Market.price(p.base, p.cat);
+      const total = unit * qty;
+      const commission = Math.round(total * (commissionPct/100));
+
+      orders.push({t:now, orderId, pid, sellerId:p.sellerId, name:p.name, qty, unit, total, commission});
+      items.push({name:p.name, qty, unit, total});
+      sub += total;
+    }
+
+    LS.set("orders", orders);
+
+    const tax = Cart.tax(sub);
+    const grand = sub + tax;
+    const area = LS.get("area","Not set");
+
+    // Create delivery order (demo)
+    const me = LS.get("me", null);
+    const customerName = me?.name || "Guest Customer";
+    const customerId = me?.id || "guest";
+    const customerPhone = (me?.id && me.id.includes("@")) ? "—" : (me?.id || "—");
+
+    const addressText = `Area: ${area} • House/Street: (demo address)`;
+    const addressLatLng = Geo.randomCustomerLatLng();
+
+    const deliveryOrder = {
+      orderId,
+      customerId,
+      customerName,
+      customerPhone,
+      addressText,
+      addressLatLng,
+      status: "ORDER_PLACED",
+      etaMin: 45,
+      createdAt: now,
+      // driver will be assigned by admin
+      driverId: null,
+      driverName: null,
+      driverPhone: null,
+      driverLatLng: Geo.storeLatLng.slice()
+    };
+    DeliveryDB.upsertOrder(deliveryOrder);
+    DeliveryDB.log(orderId, "Order placed");
+
+    LS.set("lastOrderId", orderId);
+    Orders.refreshLastOrderLabel();
+
+    Cart.clear();
+    Admin.refresh();
+    Tracking.refresh();
+
+    InvoicePDF.download({orderId, time:now, area, items, sub, tax, grand});
+    Toast.show("Order placed", `Order ${orderId} created. You can track it in Track Delivery.`);
+  }
+};
+
+/* ========= Account ========= */
+const Account = {
+  refresh(){
+    const box=document.getElementById("accountStatus");
+    const me=LS.get("me", null);
+    box.innerHTML = me
+      ? `Logged in as <b>${me.name}</b> (${me.role}) — <span style="color:#64748b;font-weight:1100">${me.id}</span>`
+      : "Not logged in.";
+  },
+  register(){
+    const name=document.getElementById("regName").value.trim();
+    const id=document.getElementById("regId").value.trim();
+    const pass=document.getElementById("regPass").value;
+    const role=document.getElementById("regRole").value;
+    if(!name||!id||!pass){ alert("Please fill all fields."); return; }
+    const users=LS.get("users",[]);
+    if(users.find(u=>u.id===id)){ alert("User already exists."); return; }
+    users.push({name,id,pass,role});
+    LS.set("users",users);
+    alert("Account created! Now login.");
+  },
+  login(){
+    const id=document.getElementById("loginId").value.trim();
+    const pass=document.getElementById("loginPass").value;
+    const users=LS.get("users",[]);
+    const u=users.find(x=>x.id===id && x.pass===pass);
+    if(!u){ alert("Wrong login."); return; }
+    LS.set("me",{name:u.name,id:u.id,role:u.role});
+    Account.refresh();
+    Driver.refresh();
+    Tracking.refresh();
+    Admin.refresh();
+  },
+  logout(){ LS.del("me"); Account.refresh(); Driver.refresh(); Tracking.refresh(); Admin.refresh(); }
+};
+
+/* ========= Settings ========= */
+const Settings = {
+  setArea(area){ LS.set("area", area); App.refreshArea(); },
+  setLang(lang){ LS.set("lang", lang); Toast.show("Settings", "Language saved (demo)."); },
+  refresh(){
+    document.getElementById("areaSelect").value = LS.get("area","");
+    document.getElementById("langSelect").value = LS.get("lang","en");
+  }
+};
+
+/* ========= Seller ========= */
+const Seller = {
+  refresh(){
+    const me=LS.get("me",null);
+    const list=ensureImages(LS.get("sellerProducts",[]));
+    const my = me ? list.filter(p=>p.sellerId===me.id) : [];
+    document.getElementById("sellerTable").innerHTML = my.map(p=>`
+      <tr><td>${p.name}</td><td>${p.status}</td><td>₹${p.base}</td></tr>
+    `).join("") || `<tr><td colspan="3" class="muted">No vendor products.</td></tr>`;
+
+    const feeBox=document.getElementById("vendorFeeBox");
+    if(!me || me.role!=="seller"){
+      feeBox.textContent = "Login as Vendor to view vendor fee details.";
+      return;
+    }
+    const start=VendorFee.initTrialForSeller(me.id);
+    const days=VendorFee.daysSince(start);
+
+    const orders=LS.get("orders",[]);
+    const myOrders=orders.filter(o=>o.sellerId===me.id);
+    const sales=myOrders.reduce((s,o)=>s+o.total,0);
+    const commissionOnMy=myOrders.reduce((s,o)=>s+o.commission,0);
+    const profit=Math.max(0, sales - commissionOnMy);
+    const feeDue=VendorFee.feeDue(profit, days);
+
+    feeBox.innerHTML = `
+      <div><b>Trial days used:</b> ${days} / 90</div>
+      <div><b>Sales (demo):</b> ₹${sales}</div>
+      <div><b>Admin commission on your sales:</b> ₹${commissionOnMy}</div>
+      <div><b>Profit (demo):</b> ₹${profit}</div>
+      <div style="margin-top:8px"><b>Vendor fee due:</b> ${feeDue>0 ? "₹"+feeDue+" (hidden)" : "₹0 (trial active)"}</div>
+    `;
+  },
+  add(){
+    const me=LS.get("me",null);
+    if(!me || me.role!=="seller"){ alert("Please login as Vendor in Account."); return; }
+
+    const name=document.getElementById("spName").value.trim();
+    const cat=document.getElementById("spCat").value;
+    const base=Number(document.getElementById("spPrice").value||0);
+    const status=document.getElementById("spStatus").value;
+    const img=(document.getElementById("spImg").value||"").trim();
+
+    if(!name || !cat || !base){ alert("Fill product name, category, and base price."); return; }
+
+    const id="v_"+Math.random().toString(16).slice(2,10);
+    const item={ id, sellerId: me.id, name, cat, base, status, img: img || (Catalog.catImg[cat] || Catalog.catImg["Top Deals"]) };
+
+    const list=ensureImages(LS.get("sellerProducts",[]));
+    list.push(item);
+    LS.set("sellerProducts", list);
+
+    document.getElementById("sellerMsg").textContent = "Saved. Product is now visible on the main page.";
+    Seller.refresh(); App.render();
+  },
+  clearMine(){
+    const me=LS.get("me",null);
+    if(!me){ alert("Login first."); return; }
+    const list=ensureImages(LS.get("sellerProducts",[]));
+    LS.set("sellerProducts", list.filter(p=>p.sellerId!==me.id));
+    Seller.refresh(); App.render();
+  }
+};
+
+/* ========= Admin ========= */
+const Admin = {
+  ensureDefaults(){
+    if(LS.get("commissionMode",null)===null) LS.set("commissionMode","auto");
+    if(LS.get("commissionPctManual",null)===null) LS.set("commissionPctManual",5);
+  },
+  applyMode(){ LS.set("commissionMode", document.getElementById("commissionMode").value); Admin.refresh(); },
+  getCommissionPct(){
+    const mode=LS.get("commissionMode","auto");
+    return (mode==="auto") ? Market.autoCommissionPct() : Number(LS.get("commissionPctManual",5));
+  },
+  save(){
+    LS.set("commissionMode", document.getElementById("commissionMode").value);
+    LS.set("commissionPctManual", Number(document.getElementById("commissionPct").value||0));
+    Toast.show("Admin", "Commission settings saved.");
+    Admin.refresh();
+  },
+  clearOrders(){
+    LS.set("orders",[]);
+    DeliveryDB.setOrders([]);
+    DeliveryDB.setLogs([]);
+    LS.del("lastOrderId");
+    Orders.refreshLastOrderLabel();
+    Toast.show("Admin", "Orders cleared (demo).");
+    Admin.refresh(); Tracking.refresh(); Driver.refresh();
+  },
+  refresh(){
+    const mode=LS.get("commissionMode","auto");
+    const manual=Number(LS.get("commissionPctManual",5));
+    const effective=Admin.getCommissionPct();
+
+    const modeEl=document.getElementById("commissionMode");
+    const pctEl=document.getElementById("commissionPct");
+    modeEl.value=mode;
+    pctEl.value=(mode==="auto")?effective:manual;
+    pctEl.disabled=(mode==="auto");
+
+    const orders=LS.get("orders",[]);
+    document.getElementById("admOrders").textContent=orders.length;
+    document.getElementById("admSales").textContent="₹"+orders.reduce((s,o)=>s+o.total,0);
+    document.getElementById("admComm").textContent="₹"+orders.reduce((s,o)=>s+o.commission,0);
+
+    // product lines table
+    document.getElementById("ordersTable").innerHTML = orders.slice().reverse().map(o=>`
+      <tr><td>${new Date(o.t).toLocaleString()}</td><td>${o.name}</td><td>${o.qty}</td><td>₹${o.total}</td><td>₹${o.commission}</td></tr>
+    `).join("") || `<tr><td colspan="5" class="muted">No orders yet.</td></tr>`;
+
+    // delivery logs
+    const logs = DeliveryDB.getLogs().slice().reverse().slice(0,80);
+    document.getElementById("admDeliveryLog").innerHTML = logs.map(l=>`
+      <tr><td>${new Date(l.t).toLocaleString()}</td><td>${l.orderId}</td><td>${l.event}</td></tr>
+    `).join("") || `<tr><td colspan="3" class="muted">No delivery events.</td></tr>`;
+
+    // assignment dropdowns
+    const dOrders = DeliveryDB.getOrders().slice().reverse();
+    const sel = document.getElementById("admOrderSelect");
+    sel.innerHTML = `<option value="">Select order</option>` + dOrders.map(o=>`<option value="${o.orderId}">${o.orderId} (${o.status})</option>`).join("");
+
+    // drivers list from users
+    const users = LS.get("users",[]);
+    const drivers = users.filter(u=>u.role==="driver");
+    const driverSel = document.getElementById("admDriverSelect");
+    driverSel.innerHTML = `<option value="">Select driver</option>` + drivers.map(d=>`<option value="${d.id}">${d.name} (${d.id})</option>`).join("");
+
+    // pay driver dropdown
+    const paySel=document.getElementById("admPayDriver");
+    paySel.innerHTML = `<option value="">Select driver</option>` + drivers.map(d=>`<option value="${d.id}">${d.name} (${d.id})</option>`).join("");
+
+    Admin.loadAssign(); // refresh msg
+  },
+  loadAssign(){
+    document.getElementById("admAssignMsg").textContent = "";
+  },
+  assignDriver(){
+    const orderId = document.getElementById("admOrderSelect").value;
+    const driverId = document.getElementById("admDriverSelect").value;
+    if(!orderId || !driverId){ alert("Select order and driver."); return; }
+
+    const users = LS.get("users",[]);
+    const d = users.find(x=>x.id===driverId && x.role==="driver");
+    if(!d){ alert("Driver not found."); return; }
+
+    const order = DeliveryDB.getOrder(orderId);
+    if(!order){ alert("Order not found."); return; }
+
+    // set driver details (demo phone = id if not email)
+    order.driverId = d.id;
+    order.driverName = d.name;
+    order.driverPhone = d.id.includes("@") ? "—" : d.id;
+    order.status = (order.status==="ORDER_PLACED") ? "ASSIGNED" : order.status;
+    order.etaMin = 40;
+    order.driverLatLng = Geo.storeLatLng.slice();
+
+    DeliveryDB.upsertOrder(order);
+    DeliveryDB.log(orderId, `Driver assigned: ${d.name}`);
+
+    document.getElementById("admAssignMsg").textContent = `Assigned ${d.name} to ${orderId}.`;
+    Toast.show("Admin", `Assigned driver to ${orderId}.`);
+    Admin.refresh(); Driver.refresh(); Tracking.refresh();
+  },
+  payDriverDemo(){
+    const driverId = document.getElementById("admPayDriver").value;
+    const amt = Number(document.getElementById("admPayAmt").value||0);
+    if(!driverId || !amt){ alert("Select driver and amount."); return; }
+    DeliveryDB.walletPay(driverId, amt);
+    Toast.show("Admin", `Marked paid ₹${amt} to driver (demo).`);
+    Driver.refresh();
+  }
+};
+
+/* ========= Tracking (Customer) ========= */
+const Tracking = {
+  custMap: null,
+  custMarkers: {store:null, driver:null, drop:null, line:null},
+  refresh(){
+    // populate orders for customer tracking
+    const orders = DeliveryDB.getOrders().slice().reverse();
+    const sel = document.getElementById("trackOrderSelect");
+    sel.innerHTML = `<option value="">Select order</option>` + orders.map(o=>`<option value="${o.orderId}">${o.orderId} (${o.status})</option>`).join("");
+
+    // auto-select last order
+    const last = LS.get("lastOrderId", null);
+    if(last && orders.find(o=>o.orderId===last)){
+      sel.value = last;
+      Tracking.loadCustomerView();
+    } else {
+      Tracking.clearCustomerView();
+    }
+  },
+  clearCustomerView(){
+    document.getElementById("custStatus").textContent="—";
+    document.getElementById("custETA").textContent="—";
+    document.getElementById("custDriver").textContent="—";
+    document.getElementById("custDriverPhone").textContent="—";
+    document.getElementById("custAddress").textContent="—";
+    document.getElementById("custMapHint").textContent="Map loads when order selected.";
+  },
+  statusPill(status){
+    if(status==="DELIVERED") return ["Delivered","good"];
+    if(status==="PICKED_UP") return ["On the way","warn"];
+    if(status==="ASSIGNED") return ["Assigned","warn"];
+    if(status==="ORDER_PLACED") return ["Order placed","warn"];
+    return [status,"warn"];
+  },
+  loadCustomerView(){
+    const orderId = document.getElementById("trackOrderSelect").value;
+    if(!orderId){ Tracking.clearCustomerView(); return; }
+    const order = DeliveryDB.getOrder(orderId);
+    if(!order){ Tracking.clearCustomerView(); return; }
+
+    const [txt,cls]=Tracking.statusPill(order.status);
+    const stEl=document.getElementById("custStatus");
+    stEl.textContent=txt;
+    stEl.className="pill "+(cls||"");
+
+    document.getElementById("custETA").textContent = order.status==="DELIVERED" ? "Delivered" : `${order.etaMin} min (demo)`;
+    document.getElementById("custDriver").textContent = order.driverName || "Not assigned";
+    document.getElementById("custDriverPhone").textContent = order.driverPhone || "—";
+    document.getElementById("custAddress").textContent = order.addressText;
+
+    Tracking.renderCustomerMap(order);
+  },
+  renderCustomerMap(order){
+    const mapDiv=document.getElementById("customerMap");
+
+    if(!Tracking.custMap){
+      Tracking.custMap = L.map(mapDiv).setView(Geo.storeLatLng, 12);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19, attribution: '&copy; OpenStreetMap'
+      }).addTo(Tracking.custMap);
+    }
+
+    // clear old markers
+    Object.values(Tracking.custMarkers).forEach(m=>{ if(m && Tracking.custMap.hasLayer(m)) Tracking.custMap.removeLayer(m); });
+
+    const store = L.marker(Geo.storeLatLng).addTo(Tracking.custMap).bindPopup("UK Mart Store");
+    const drop = L.marker(order.addressLatLng).addTo(Tracking.custMap).bindPopup("Delivery Address");
+    const drvPos = order.driverLatLng || Geo.storeLatLng;
+    const driver = L.circleMarker(drvPos, {radius:8}).addTo(Tracking.custMap).bindPopup("Delivery Partner");
+
+    const line = L.polyline([drvPos, order.addressLatLng], {weight:4}).addTo(Tracking.custMap);
+
+    Tracking.custMarkers = {store, drop, driver, line};
+
+    // fit bounds
+    const bounds = L.latLngBounds([Geo.storeLatLng, order.addressLatLng, drvPos]);
+    Tracking.custMap.fitBounds(bounds.pad(0.2));
+
+    document.getElementById("custMapHint").textContent =
+      order.driverId ? "Live location is simulated by driver panel (demo)." : "Waiting for driver assignment.";
+  }
+};
+
+/* ========= Driver Panel ========= */
+const Driver = {
+  drvMap:null,
+  drvMarkers:{store:null, driver:null, drop:null, line:null},
+  simTimer:null,
+
+  refresh(){
+    const me=LS.get("me",null);
+    const sel=document.getElementById("driverOrderSelect");
+    const orders=DeliveryDB.getOrders().filter(o=>o.driverId && me && o.driverId===me.id).slice().reverse();
+    sel.innerHTML = `<option value="">Select order</option>` + orders.map(o=>`<option value="${o.orderId}">${o.orderId} (${o.status})</option>`).join("");
+
+    // wallet
+    if(me && me.role==="driver"){
+      const w = DeliveryDB.walletEnsure(me.id);
+      document.getElementById("drvWallet").textContent = "₹"+w.balance;
+      document.getElementById("drvPending").textContent = "₹"+w.pending;
+    } else {
+      document.getElementById("drvWallet").textContent = "₹0";
+      document.getElementById("drvPending").textContent = "₹0";
+    }
+
+    // auto load last selected
+    const last = LS.get("driverLastOrder", null);
+    if(last && orders.find(o=>o.orderId===last)){
+      sel.value=last;
+      Driver.loadOrder();
+    } else {
+      Driver.clearUI();
+    }
+  },
+
+  clearUI(){
+    document.getElementById("drvStatus").textContent="—";
+    document.getElementById("drvStatus").className="pill";
+    document.getElementById("drvCustomer").textContent="—";
+    document.getElementById("drvCustomerPhone").textContent="—";
+    document.getElementById("drvPickup").textContent="Store location (demo)";
+    document.getElementById("drvDrop").textContent="—";
+    document.getElementById("drvMapHint").textContent="Map loads when order selected.";
+    document.getElementById("drvLog").innerHTML = `<tr><td colspan="2" class="muted">No logs.</td></tr>`;
+  },
+
+  loadOrder(){
+    const me=LS.get("me",null);
+    if(!me || me.role!=="driver"){
+      alert("Please login as Delivery Partner (Driver).");
+      Driver.clearUI();
+      return;
+    }
+
+    const orderId=document.getElementById("driverOrderSelect").value;
+    if(!orderId){ Driver.clearUI(); return; }
+    LS.set("driverLastOrder", orderId);
+
+    const order=DeliveryDB.getOrder(orderId);
+    if(!order){ Driver.clearUI(); return; }
+
+    const stEl=document.getElementById("drvStatus");
+    const mapStatus = (s)=>{
+      if(s==="DELIVERED") return ["Delivered","good"];
+      if(s==="PICKED_UP") return ["On the way","warn"];
+      if(s==="ASSIGNED") return ["Assigned","warn"];
+      return [s,"warn"];
+    };
+    const [txt,cls]=mapStatus(order.status);
+    stEl.textContent=txt;
+    stEl.className="pill "+cls;
+
+    document.getElementById("drvCustomer").textContent = order.customerName;
+    document.getElementById("drvCustomerPhone").textContent = order.customerPhone || "—";
+    document.getElementById("drvPickup").textContent = "UK Mart Store (demo)";
+    document.getElementById("drvDrop").textContent = order.addressText;
+
+    Driver.renderMap(order);
+    Driver.renderLog(orderId);
+  },
+
+  renderLog(orderId){
+    const logs=DeliveryDB.getLogs().filter(l=>l.orderId===orderId).slice().reverse().slice(0,25);
+    document.getElementById("drvLog").innerHTML = logs.map(l=>`
+      <tr><td>${new Date(l.t).toLocaleString()}</td><td>${l.event}</td></tr>
+    `).join("") || `<tr><td colspan="2" class="muted">No logs.</td></tr>`;
+  },
+
+  renderMap(order){
+    const mapDiv=document.getElementById("driverMap");
+    if(!Driver.drvMap){
+      Driver.drvMap = L.map(mapDiv).setView(Geo.storeLatLng, 12);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19, attribution: '&copy; OpenStreetMap'
+      }).addTo(Driver.drvMap);
+    }
+
+    // clear old layers
+    Object.values(Driver.drvMarkers).forEach(m=>{ if(m && Driver.drvMap.hasLayer(m)) Driver.drvMap.removeLayer(m); });
+
+    const store = L.marker(Geo.storeLatLng).addTo(Driver.drvMap).bindPopup("Pickup: Store");
+    const drop = L.marker(order.addressLatLng).addTo(Driver.drvMap).bindPopup("Drop: Customer");
+    const drvPos = order.driverLatLng || Geo.storeLatLng;
+    const driver = L.circleMarker(drvPos, {radius:8}).addTo(Driver.drvMap).bindPopup("You (driver)");
+    const line = L.polyline([drvPos, order.addressLatLng], {weight:4}).addTo(Driver.drvMap);
+
+    Driver.drvMarkers={store,drop,driver,line};
+
+    const bounds = L.latLngBounds([Geo.storeLatLng, order.addressLatLng, drvPos]);
+    Driver.drvMap.fitBounds(bounds.pad(0.2));
+    document.getElementById("drvMapHint").textContent = "Use Start/Stop Live (demo) to simulate movement.";
+  },
+
+  updateDriverPos(orderId, newLatLng){
+    const order = DeliveryDB.getOrder(orderId);
+    if(!order) return;
+    order.driverLatLng = newLatLng;
+    // reduce ETA a bit
+    if(order.status!=="DELIVERED") order.etaMin = Math.max(5, order.etaMin - 2);
+    DeliveryDB.upsertOrder(order);
+  },
+
+  markPicked(){
+    const orderId=document.getElementById("driverOrderSelect").value;
+    if(!orderId) return;
+    const order = DeliveryDB.getOrder(orderId);
+    if(!order) return;
+
+    if(order.status==="DELIVERED"){
+      document.getElementById("drvMsg").textContent="Already delivered.";
+      return;
+    }
+    order.status="PICKED_UP";
+    order.etaMin = Math.min(order.etaMin, 30);
+    DeliveryDB.upsertOrder(order);
+    DeliveryDB.log(orderId, "Picked up from store");
+    Toast.show("Delivery update", `Order ${orderId}: Picked up`);
+    Driver.loadOrder();
+    Tracking.refresh();
+    Admin.refresh();
+  },
+
+  markDelivered(){
+    const orderId=document.getElementById("driverOrderSelect").value;
+    if(!orderId) return;
+    const order = DeliveryDB.getOrder(orderId);
+    if(!order) return;
+
+    if(order.status==="DELIVERED"){
+      document.getElementById("drvMsg").textContent="Already delivered.";
+      return;
+    }
+
+    order.status="DELIVERED";
+    order.etaMin=0;
+    order.driverLatLng = order.addressLatLng.slice();
+    DeliveryDB.upsertOrder(order);
+    DeliveryDB.log(orderId, "Delivered successfully");
+
+    // add driver earning (demo): flat fee ₹40 + 1% of order grand (approx using lines)
+    const lines = LS.get("orders", []).filter(x=>x.orderId===orderId);
+    const sales = lines.reduce((s,o)=>s+o.total,0);
+    const earning = Math.round(40 + sales*0.01);
+    DeliveryDB.walletAdd(order.driverId, earning);
+
+    Toast.show("Delivered ✅", `Order ${orderId} delivered. Driver earned ₹${earning} (demo).`);
+    Driver.refresh();
+    Tracking.refresh();
+    Admin.refresh();
+  },
+
+  toggleSim(){
+    const me=LS.get("me",null);
+    if(!me || me.role!=="driver"){ alert("Login as Driver first."); return; }
+
+    const orderId=document.getElementById("driverOrderSelect").value;
+    if(!orderId){ alert("Select an order."); return; }
+
+    if(Driver.simTimer){
+      clearInterval(Driver.simTimer);
+      Driver.simTimer=null;
+      Toast.show("Live tracking", "Simulation stopped.");
+      return;
+    }
+
+    // start simulation: move driver from store -> drop in small steps
+    Driver.simTimer = setInterval(()=>{
+      const order = DeliveryDB.getOrder(orderId);
+      if(!order || order.status==="DELIVERED"){
+        clearInterval(Driver.simTimer); Driver.simTimer=null;
+        return;
+      }
+
+      const [lat1,lng1] = order.driverLatLng || Geo.storeLatLng;
+      const [lat2,lng2] = order.addressLatLng;
+
+      const step = 0.08; // move fraction per tick
+      const nLat = lat1 + (lat2-lat1)*step;
+      const nLng = lng1 + (lng2-lng1)*step;
+
+      Driver.updateDriverPos(orderId, [nLat,nLng]);
+
+      // refresh maps
+      Driver.loadOrder();
+      Tracking.loadCustomerView();
+
+    }, 1800);
+
+    Toast.show("Live tracking", "Simulation started (demo).");
+  },
+
+  requestPayout(){
+    const me=LS.get("me",null);
+    if(!me || me.role!=="driver"){ alert("Login as Driver."); return; }
+    DeliveryDB.walletRequest(me.id);
+    Toast.show("Payout requested", "Moved wallet balance to pending (demo).");
+    Driver.refresh();
+  },
+
+  clearWalletDemo(){
+    const me=LS.get("me",null);
+    if(!me || me.role!=="driver"){ alert("Login as Driver."); return; }
+    const w=DeliveryDB.walletGetAll();
+    w[me.id]={balance:0,pending:0};
+    DeliveryDB.walletSetAll(w);
+    Toast.show("Demo", "Earnings reset.");
+    Driver.refresh();
+  }
+};
+
+/* ========= Admin: drivers list depends on users ========= */
+
+/* ========= Boot ========= */
+document.addEventListener("DOMContentLoaded", ()=>{
+  App.init();
+});
 </script>
-
 </body>
 </html>
